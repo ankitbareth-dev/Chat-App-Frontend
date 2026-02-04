@@ -1,4 +1,6 @@
 import ChatNavbar from "./ChatNavbar";
+import ChatSidebar from "./ChatSidebar";
+import ChatWindow from "./ChatWindow";
 import { useAppSelector } from "../../app/hooks";
 import { selectAuth } from "../../features/auth/authSlice";
 
@@ -16,14 +18,9 @@ const ChatLayout = () => {
   return (
     <div className="h-screen flex flex-col bg-[var(--bg-deep)] overflow-hidden">
       <ChatNavbar />
-
       <div className="flex-1 flex overflow-hidden">
-        <main className="flex-1 flex items-center justify-center text-[var(--text-muted)]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-2">Welcome to ChatApp</h2>
-            <p>Select a chat to start messaging.</p>
-          </div>
-        </main>
+        <ChatSidebar />
+        <ChatWindow />
       </div>
     </div>
   );

@@ -10,7 +10,6 @@ export const Testimonials = () => {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Changed 'from' to 'to' so it forces the element to visible state
       gsap.to(".highlight-item", {
         scrollTrigger: {
           trigger: containerRef.current,
@@ -24,13 +23,11 @@ export const Testimonials = () => {
       });
     }, containerRef);
 
-    // Force recalculate
     ScrollTrigger.refresh();
 
     return () => ctx.revert();
   }, []);
 
-  // Main Benefit (Large Card)
   const mainBenefit = {
     icon: (
       <Heart className="h-20 w-20 text-red-400 drop-shadow-[0_0_20px_rgba(248,113,113,0.3)]" />
@@ -40,7 +37,6 @@ export const Testimonials = () => {
     tag: "Zero Distractions",
   };
 
-  // Technical Specs (Stacked Cards)
   const technicalSpecs = [
     {
       icon: <Zap className="h-12 w-12 text-yellow-400" />,

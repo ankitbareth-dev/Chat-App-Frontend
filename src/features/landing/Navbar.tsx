@@ -1,6 +1,8 @@
 import { UserPlus, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[97%] max-w-7xl z-50 rounded-2xl border border-white/10 bg-[var(--bg-card)] backdrop-blur-xl shadow-xl">
       <div className="flex items-center justify-between px-8 py-3">
@@ -27,8 +29,10 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Log in button removed as requested */}
-          <button className="flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--brand-primary)]/30 transition-all hover:scale-105">
+          <button
+            className="flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[var(--brand-primary)]/30 transition-all hover:scale-105 cursor-pointer"
+            onClick={() => navigate("/auth")}
+          >
             <UserPlus className="h-4 w-4" />
             Get Started
           </button>

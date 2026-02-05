@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ArrowRight, Shield, Zap, MoreHorizontal, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
   const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -62,7 +64,10 @@ export const Hero = () => {
 
           {/* Button */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
-            <button className="flex items-center justify-center gap-2 rounded-full bg-[var(--brand-primary)] px-8 py-3 text-white font-bold transition-all hover:bg-[var(--brand-accent)] shadow-lg shadow-[var(--brand-primary)]/20">
+            <button
+              className="flex items-center justify-center gap-2 rounded-full bg-[var(--brand-primary)] px-8 py-3 text-white font-bold transition-all hover:bg-[var(--brand-accent)] shadow-lg shadow-[var(--brand-primary)]/20 cursor-pointer"
+              onClick={() => navigate("/auth")}
+            >
               Start Chatting <ArrowRight className="w-5 h-5" />
             </button>
           </div>

@@ -2,11 +2,13 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Send } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export const CTA = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -47,7 +49,10 @@ export const CTA = () => {
                   chat. It's free, secure, and just works.
                 </p>
 
-                <button className="w-fit flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] px-10 py-4 text-white font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)]">
+                <button
+                  className="w-fit flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] px-10 py-4 text-white font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] cursor-pointer"
+                  onClick={() => navigate("/auth")}
+                >
                   Start Chatting Now <ArrowRight className="w-5 h-5" />
                 </button>
               </div>

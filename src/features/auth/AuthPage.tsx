@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Loader2,
-  LogIn,
   UserPlus,
   Mail,
   Phone,
   Lock,
+  ArrowRight,
+  Shield,
+  Zap,
   User,
 } from "lucide-react";
 
@@ -23,7 +25,7 @@ const AuthPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/chat");
+      navigate("/dashboard");
     }
   }, [isAuthenticated, navigate]);
 
@@ -33,11 +35,6 @@ const AuthPage = () => {
     phone: "",
     password: "",
   });
-
-  //const handleToggle = () => {
-  // setIsLogin(!isLogin);
-  // setFormData({ name: "", email: "", phone: "", password: "" });
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,145 +56,213 @@ const AuthPage = () => {
       loginUser.fulfilled.match(resultAction) ||
       signupUser.fulfilled.match(resultAction)
     ) {
-      navigate("/chat");
+      navigate("/dashboard");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[var(--bg-deep)]">
-      {/* Background Grid Pattern */}
-      <div className="fixed inset-0 bg-grid-pattern pointer-events-none z-0 opacity-40" />
+    <div className="min-h-screen w-full grid lg:grid-cols-2 bg-[var(--bg-deep)]">
+      {/* =========================== */}
+      {/* LEFT SIDE: Marketing (Desktop Only) */}
+      {/* =========================== */}
+      <div className="hidden lg:flex relative overflow-hidden flex-col justify-center items-center p-12 border-r border-white/5">
+        {/* Background Elements from Hero */}
+        <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0 opacity-40" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--brand-primary)]/10 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Main Card */}
-      <div className="relative z-10 w-full max-w-md p-8 rounded-2xl border border-white/10 bg-[var(--bg-card)] backdrop-blur-md shadow-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[var(--text-main)] mb-2">
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </h1>
-          <p className="text-[var(--text-muted)] text-sm">
-            {isLogin
-              ? "Login to access your chats"
-              : "Get started with your account today"}
-          </p>
-        </div>
+        <div className="relative z-10 max-w-lg w-full space-y-8">
+          {/* Hero Text */}
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
+              Real-time chat, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] via-purple-400 to-[var(--brand-accent)]">
+                simplified.
+              </span>
+            </h1>
+            <p className="text-lg text-[var(--text-muted)] leading-relaxed">
+              Connect with friends and colleagues instantly. Experience a fast,
+              secure, and seamless messaging platform.
+            </p>
 
-        {/* Tabs */}
-        <div className="flex bg-[var(--bg-surface)] rounded-lg p-1 mb-6 border border-white/5">
-          <button
-            onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-              isLogin
-                ? "bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20"
-                : "text-[var(--text-muted)] hover:text-white"
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
-              !isLogin
-                ? "bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20"
-                : "text-[var(--text-muted)] hover:text-white"
-            }`}
-          >
-            Sign Up
-          </button>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-            {error}
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-white">
+                <Shield className="h-4 w-4 text-green-400" /> End-to-End
+                Encrypted
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-white">
+                <Zap className="h-4 w-4 text-yellow-400" /> Lightning Fast
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field */}
-          {!isLogin && (
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full bg-[var(--bg-surface)] border border-white/10 text-[var(--text-main)] pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent placeholder-gray-500 transition-all"
-                required={!isLogin}
-              />
+          {/* Mini Chat UI Visual (Simplified Hero Visual) */}
+          <div className="relative perspective-1000 mt-8 transform rotate-y-12 rotate-x-6 hover:rotate-0 transition-transform duration-500">
+            <div className="rounded-2xl border border-white/10 bg-[var(--bg-surface)]/60 backdrop-blur-xl p-4 shadow-2xl">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500"></div>
+                <div className="h-2 w-24 bg-white/20 rounded-full"></div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-8 w-3/4 bg-white/10 rounded-lg rounded-tl-none"></div>
+                <div className="h-8 w-1/2 ml-auto bg-[var(--brand-primary)]/50 rounded-lg rounded-tr-none"></div>
+                <div className="h-2 w-16 ml-auto bg-white/20 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =========================== */}
+      {/* RIGHT SIDE: The Form (Clean Layout) */}
+      {/* =========================== */}
+      <div className="flex flex-col justify-center items-center p-8 relative">
+        {/* Ambient Glow for Form Side */}
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--brand-accent)]/5 rounded-full blur-[80px] pointer-events-none" />
+
+        {/* Form Container - No Card Border, Just Content */}
+        <div className="w-full max-w-md z-10 animate-fade-in-up">
+          {/* Header Section */}
+          <div className="mb-10">
+            {/* Mobile Logo (Only visible on small screens) */}
+            <div className="lg:hidden flex items-center gap-3 mb-6">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center text-white font-bold">
+                A
+              </div>
+              <span className="text-xl font-bold text-white">App Name</span>
+            </div>
+
+            <h2 className="text-3xl font-bold text-white mb-2">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </h2>
+            <p className="text-[var(--text-muted)]">
+              {isLogin
+                ? "Enter your phone number to continue."
+                : "Enter your details to get started."}
+            </p>
+          </div>
+
+          {/* Toggle Switch */}
+          <div className="flex bg-[var(--bg-surface)]/50 p-1 rounded-xl mb-8 border border-white/5 relative max-w-[300px]">
+            <div
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-[var(--brand-primary)] shadow-lg shadow-[var(--brand-primary)]/20 transition-all duration-300 ease-in-out ${
+                isLogin ? "left-1" : "left-1/2 ml-1"
+              }`}
+            />
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
+                isLogin
+                  ? "text-white"
+                  : "text-[var(--text-muted)] hover:text-white"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
+                !isLogin
+                  ? "text-white"
+                  : "text-[var(--text-muted)] hover:text-white"
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+              {error}
             </div>
           )}
 
-          {/* Email Field */}
-          {!isLogin && (
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="w-full bg-[var(--bg-surface)] border border-white/10 text-[var(--text-main)] pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent placeholder-gray-500 transition-all"
-                required={!isLogin}
-              />
-            </div>
-          )}
-
-          {/* Phone Number */}
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
-            <input
-              type="tel"
-              placeholder="Phone Number"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              className="w-full bg-[var(--bg-surface)] border border-white/10 text-[var(--text-main)] pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent placeholder-gray-500 transition-all"
-              required
-            />
-          </div>
-
-          {/* Password */}
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
-            <input
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="w-full bg-[var(--bg-surface)] border border-white/10 text-[var(--text-main)] pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent placeholder-gray-500 transition-all"
-              required
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white font-semibold py-3 rounded-lg shadow-lg shadow-[var(--brand-primary)]/20 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : isLogin ? (
-              <>
-                <LogIn className="h-5 w-5" /> Login
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-5 w-5" /> Sign Up
-              </>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name Field */}
+            {!isLogin && (
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
+                  required={!isLogin}
+                />
+              </div>
             )}
-          </button>
-        </form>
+
+            {/* Email Field */}
+            {!isLogin && (
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
+                  required={!isLogin}
+                />
+              </div>
+            )}
+
+            {/* Phone Number */}
+            <div className="relative group">
+              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
+              <input
+                type="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
+                required
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-accent)] hover:brightness-110 text-white font-bold py-4 rounded-xl shadow-lg shadow-[var(--brand-primary)]/25 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : isLogin ? (
+                <>
+                  Login <ArrowRight className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Create Account <UserPlus className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -25,6 +25,31 @@ const initialState: AuthState = {
   error: null,
 };
 
+export const checkAuth = createAppAsyncThunk<
+  User,
+  void,
+  { rejectValue: string }
+>("auth/checkAuth", async (_, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`${ENV.API_BASE_URL}/api/auth/check-auth`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error("Not authenticated");
+    }
+
+    const data: AuthApiSuccessResponse<User> = await res.json();
+    return data.data;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return rejectWithValue(err.message);
+    }
+    return rejectWithValue("Failed to check authentication status");
+  }
+});
+
 export const loginUser = createAppAsyncThunk<
   User,
   LoginData,
@@ -147,6 +172,21 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
     });
+
+    builder
+      .addCase(checkAuth.pending, (state) => {
+        state.initialLoading = true;
+      })
+      .addCase(checkAuth.fulfilled, (state, action) => {
+        state.initialLoading = false;
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.initialLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      });
   },
 });
 

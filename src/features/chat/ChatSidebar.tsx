@@ -20,9 +20,9 @@ const ChatSidebar = () => {
   } = useAppSelector(selectChat);
 
   // Fetch list on mount
-  useEffect(() => {
-    dispatch(fetchChatList());
-  }, [dispatch]);
+  //useEffect(() => {
+  //  dispatch(fetchChatList());
+  //}, [dispatch]);
 
   // Handle Search Debounce (Manual implementation for simplicity)
   useEffect(() => {

@@ -9,6 +9,8 @@ interface ChatState {
   isSearching: boolean;
   error: string | null;
   activeChatUser: ChatUser | null;
+  chatList: ChatUser[];
+  isLoadingList: boolean;
 }
 
 const initialState: ChatState = {
@@ -16,7 +18,30 @@ const initialState: ChatState = {
   isSearching: false,
   error: null,
   activeChatUser: null,
+  chatList: [],
+  isLoadingList: false,
 };
+
+export const fetchChatList = createAppAsyncThunk<
+  ChatUser[],
+  void,
+  { rejectValue: string }
+>("chat/fetchList", async (_, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`${ENV.API_BASE_URL}/api/chats/list`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch chats");
+
+    const data = await res.json();
+    return data.data || [];
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return rejectWithValue(err.message);
+    }
+    return rejectWithValue("Could not load chat list");
+  }
+});
 
 export const searchUsers = createAppAsyncThunk<
   ChatUser[],
@@ -68,6 +93,16 @@ const chatSlice = createSlice({
       .addCase(searchUsers.rejected, (state, action) => {
         state.isSearching = false;
         state.error = action.payload ?? "Search failed";
+      })
+      .addCase(fetchChatList.pending, (state) => {
+        state.isLoadingList = true;
+      })
+      .addCase(fetchChatList.fulfilled, (state, action) => {
+        state.isLoadingList = false;
+        state.chatList = action.payload;
+      })
+      .addCase(fetchChatList.rejected, (state) => {
+        state.isLoadingList = false;
       });
   },
 });

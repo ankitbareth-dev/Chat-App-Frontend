@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import { SocketContext } from "./SocketContext";
 import { useAppSelector } from "../app/hooks";
@@ -12,26 +12,21 @@ interface Props {
 const SocketProvider = ({ children }: Props) => {
   const { isAuthenticated, initialLoading } = useAppSelector(selectAuth);
   const socketRef = useRef<Socket | null>(null);
-  const [, forceRender] = useState(0); // used only to re-render provider
 
   useEffect(() => {
-    // ⛔ wait until auth hydration finishes
     if (initialLoading) return;
 
-    // 🔴 user logged out → disconnect once
     if (!isAuthenticated) {
       if (socketRef.current) {
-        console.log("🔌 Disconnecting socket (logout)");
+        console.log("🔌 Disconnecting socket");
         socketRef.current.disconnect();
         socketRef.current = null;
-        forceRender((x) => x + 1);
       }
       return;
     }
 
-    // 🟢 user logged in → connect once
     if (!socketRef.current) {
-      console.log("🔌 Connecting socket...");
+      console.log("🔌 Connecting socket");
 
       const socket = io(ENV.API_BASE_URL, {
         withCredentials: true,
@@ -51,11 +46,11 @@ const SocketProvider = ({ children }: Props) => {
       });
 
       socketRef.current = socket;
-      forceRender((x) => x + 1);
     }
   }, [isAuthenticated, initialLoading]);
 
   return (
+    // eslint-disable-next-line react-hooks/refs
     <SocketContext.Provider value={socketRef.current}>
       {children}
     </SocketContext.Provider>

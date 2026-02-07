@@ -8,6 +8,7 @@ import {
   searchUsers,
   clearSearchResults,
   selectChat,
+  setActiveChat,
 } from "../../features/chat/chatSlice";
 import { type ChatUser } from "../../types/chat.types";
 
@@ -54,6 +55,9 @@ const ChatNavbar = () => {
   const handleUserClick = useCallback(
     (selectedUser: ChatUser) => {
       console.log("Selected User:", selectedUser);
+
+      dispatch(setActiveChat(selectedUser));
+
       setSearchInput("");
       dispatch(clearSearchResults());
       setIsSearchFocused(false);

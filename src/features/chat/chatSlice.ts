@@ -4,6 +4,14 @@ import { createAppAsyncThunk } from "../../app/withTypes";
 import { ENV } from "../../app/env";
 import type { ChatUser } from "../../types/chat.types";
 
+interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+}
+
 interface ChatState {
   searchResults: ChatUser[];
   isSearching: boolean;
@@ -11,6 +19,8 @@ interface ChatState {
   activeChatUser: ChatUser | null;
   chatList: ChatUser[];
   isLoadingList: boolean;
+  messages: Message[];
+  isTyping: boolean;
 }
 
 const initialState: ChatState = {
@@ -20,6 +30,8 @@ const initialState: ChatState = {
   activeChatUser: null,
   chatList: [],
   isLoadingList: false,
+  messages: [],
+  isTyping: false,
 };
 
 export const fetchChatList = createAppAsyncThunk<
@@ -79,6 +91,15 @@ const chatSlice = createSlice({
     setActiveChat: (state, action) => {
       state.activeChatUser = action.payload;
     },
+    addMessage: (state, action) => {
+      state.messages.push(action.payload);
+    },
+    setTyping: (state, action) => {
+      state.isTyping = action.payload;
+    },
+    clearMessages: (state) => {
+      state.messages = [];
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -107,7 +128,13 @@ const chatSlice = createSlice({
   },
 });
 
-export const { clearSearchResults, setActiveChat } = chatSlice.actions;
+export const {
+  clearSearchResults,
+  setActiveChat,
+  addMessage,
+  setTyping,
+  clearMessages,
+} = chatSlice.actions;
 export const selectChat = (state: RootState) => state.chat;
 
 export default chatSlice.reducer;

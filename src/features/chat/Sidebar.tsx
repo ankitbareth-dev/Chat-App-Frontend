@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, UserPlus } from "lucide-react";
 
 const DUMMY_CHATS = [
   {
@@ -36,16 +36,13 @@ const Sidebar = () => {
 
   return (
     <aside className="w-80 flex-col border-r border-white/5 bg-[var(--bg-surface)] hidden md:flex h-full">
-      {/* --- SECTION 1: TOP (Logo & Dropdown) --- */}
       <div className="p-4 flex items-center justify-between border-b border-white/5 relative z-20">
-        {/* App Logo */}
         <img
           src="/App-Logo.png"
           alt="App Logo"
           className="h-8 w-auto object-contain"
         />
 
-        {/* User Dropdown Trigger */}
         <div className="relative ">
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -56,7 +53,6 @@ const Sidebar = () => {
             </div>
           </button>
 
-          {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-card)] backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in-up">
               <button
@@ -79,7 +75,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* --- SECTION 3: BOTTOM (Chat List) --- */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {DUMMY_CHATS.map((chat) => (
           <button
@@ -123,6 +118,13 @@ const Sidebar = () => {
             </div>
           </button>
         ))}
+      </div>
+
+      <div className="p-4 border-t border-white/5 bg-[var(--bg-surface)]">
+        <button className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-white/20 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] hover:text-[var(--brand-accent)] transition-all text-sm font-medium group cursor-pointer">
+          <UserPlus className="h-4 w-4" />
+          Add Friend
+        </button>
       </div>
     </aside>
   );

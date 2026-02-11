@@ -12,13 +12,43 @@ import { selectAuth } from "./features/auth/authSlice";
 import { useEffect } from "react";
 import SplashScreen from "./components/SplashScreen";
 
+import { connectSocket, disconnectSocket } from "./app/socket";
+
 function App() {
   const dispatch = useAppDispatch();
-  const { initialLoading } = useAppSelector(selectAuth);
+  const { initialLoading, isAuthenticated } = useAppSelector(selectAuth);
 
   useEffect(() => {
     dispatch(checkAuth());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const socket = connectSocket();
+
+      socket.on("connect", () => {
+        console.log("✅ Socket connected:", socket.id);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("❌ Socket disconnected");
+      });
+    } else {
+      disconnectSocket();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      disconnectSocket();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   if (initialLoading) {
     return <SplashScreen />;

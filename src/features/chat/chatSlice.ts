@@ -17,6 +17,7 @@ interface ChatState {
   chatList: PublicUser[];
   chatListLoading: boolean;
   chatListError: string | null;
+  activeChatUser: PublicUser | null;
 }
 
 const initialState: ChatState = {
@@ -27,6 +28,8 @@ const initialState: ChatState = {
   chatList: [],
   chatListLoading: false,
   chatListError: null,
+
+  activeChatUser: null,
 };
 
 export const searchUsers = createAppAsyncThunk<
@@ -92,6 +95,9 @@ const chatSlice = createSlice({
       state.searchResults = [];
       state.searchError = null;
     },
+    setActiveChatUser: (state, action) => {
+      state.activeChatUser = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -127,6 +133,6 @@ const chatSlice = createSlice({
 });
 
 export const selectChat = (state: RootState) => state.chat;
-export const { clearSearchResults } = chatSlice.actions;
+export const { clearSearchResults, setActiveChatUser } = chatSlice.actions;
 
 export default chatSlice.reducer;

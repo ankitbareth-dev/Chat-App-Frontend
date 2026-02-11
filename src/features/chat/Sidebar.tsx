@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 import { LogOut, User, UserPlus, Loader2, AlertCircle } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { fetchChatList, selectChat } from "./chatSlice";
+import { fetchChatList, selectChat, setActiveChatUser } from "./chatSlice";
 import ProfileModal from "../profile/ProfileModal";
 import LogoutModal from "../auth/LogoutModal";
 import AddFriendModal from "../chat/AddFriendModal";
+import type { ChatUser } from "../../types/chat.types";
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
 
-  const { chatList, chatListLoading, chatListError } =
+  const { chatList, chatListLoading, chatListError, activeChatUser } =
     useAppSelector(selectChat);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
-
-  const [activeChatId, setActiveChatId] = useState<string | null>("1");
 
   useEffect(() => {
     dispatch(fetchChatList());
@@ -35,6 +34,10 @@ const Sidebar = () => {
 
   const handleAddFriendClick = () => {
     setIsAddFriendModalOpen(true);
+  };
+
+  const handleSelectUser = (user: ChatUser) => {
+    dispatch(setActiveChatUser(user));
   };
 
   return (
@@ -80,9 +83,7 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* Chat List Container */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {/* Loading State */}
           {chatListLoading && (
             <div className="flex flex-col items-center justify-center py-10 text-[var(--text-muted)]">
               <Loader2 className="h-6 w-6 animate-spin mb-2" />
@@ -90,7 +91,6 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Error State */}
           {chatListError && (
             <div className="p-4 text-center">
               <div className="flex flex-col items-center gap-2 text-red-400 mb-4">
@@ -106,7 +106,6 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Empty State */}
           {!chatListLoading && !chatListError && chatList.length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 text-center px-4">
               <p className="text-sm text-[var(--text-muted)] mb-2">
@@ -118,14 +117,13 @@ const Sidebar = () => {
             </div>
           )}
 
-          {/* Chat List */}
           {!chatListLoading &&
             chatList.map((user) => (
               <button
                 key={user.id}
-                onClick={() => setActiveChatId(user.id)}
+                onClick={() => handleSelectUser(user)}
                 className={`w-full flex items-center gap-3 rounded-lg p-3 transition-colors ${
-                  activeChatId === user.id
+                  activeChatUser?.id === user.id
                     ? "bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20"
                     : "hover:bg-white/5 border border-transparent"
                 }`}
@@ -141,7 +139,7 @@ const Sidebar = () => {
                   <div className="flex justify-between items-center mb-0.5">
                     <h3
                       className={`text-sm font-medium ${
-                        activeChatId === user.id
+                        activeChatUser?.id === user.id
                           ? "text-[var(--brand-primary)]"
                           : "text-[var(--text-main)]"
                       }`}
@@ -149,7 +147,6 @@ const Sidebar = () => {
                       {user.name}
                     </h3>
                   </div>
-                  {/* Message placeholder - API doesn't provide it yet */}
                   <p className="truncate text-xs text-[var(--text-muted)]">
                     Tap to open chat
                   </p>
@@ -169,7 +166,6 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* Modals */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -183,6 +179,7 @@ const Sidebar = () => {
       <AddFriendModal
         isOpen={isAddFriendModalOpen}
         onClose={() => setIsAddFriendModalOpen(false)}
+        onUserSelected={handleSelectUser}
       />
     </>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LogOut, User, UserPlus } from "lucide-react";
 import ProfileModal from "../profile/ProfileModal";
 import LogoutModal from "../auth/LogoutModal";
+import AddFriendModal from "../chat/AddFriendModal";
 
 const DUMMY_CHATS = [
   {
@@ -36,7 +37,8 @@ const DUMMY_CHATS = [
 const Sidebar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // New state
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
 
   const handleProfileClick = () => {
     setIsDropdownOpen(false);
@@ -46,6 +48,9 @@ const Sidebar = () => {
   const handleLogoutClick = () => {
     setIsDropdownOpen(false);
     setIsLogoutModalOpen(true);
+  };
+  const handleAddFriendClick = () => {
+    setIsAddFriendModalOpen(true);
   };
 
   return (
@@ -79,7 +84,6 @@ const Sidebar = () => {
                 </button>
                 <div className="h-px bg-white/5 w-full"></div>
 
-                {/* Updated Logout Button */}
                 <button
                   onClick={handleLogoutClick}
                   className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-3 transition-colors cursor-pointer"
@@ -138,7 +142,11 @@ const Sidebar = () => {
         </div>
 
         <div className="p-4 border-t border-white/5 bg-[var(--bg-surface)]">
-          <button className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-white/20 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] hover:text-[var(--brand-accent)] transition-all text-sm font-medium group cursor-pointer">
+          {/* Added onClick handler */}
+          <button
+            onClick={handleAddFriendClick}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-white/20 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] hover:text-[var(--brand-accent)] transition-all text-sm font-medium group cursor-pointer"
+          >
             <UserPlus className="h-4 w-4" />
             Add Friend
           </button>
@@ -154,6 +162,11 @@ const Sidebar = () => {
       <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
+      />
+
+      <AddFriendModal
+        isOpen={isAddFriendModalOpen}
+        onClose={() => setIsAddFriendModalOpen(false)}
       />
     </>
   );

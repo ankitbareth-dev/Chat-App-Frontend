@@ -2,12 +2,12 @@ import { AlertTriangle, X, Loader2 } from "lucide-react";
 import { logoutUser, selectAuth } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 
-type ProfileModalProps = {
+type LogoutModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-const LogoutModal = ({ isOpen, onClose }: ProfileModalProps) => {
+const LogoutModal = ({ isOpen, onClose }: LogoutModalProps) => {
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector(selectAuth);
 
@@ -28,7 +28,7 @@ const LogoutModal = ({ isOpen, onClose }: ProfileModalProps) => {
         {!loading && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -62,14 +62,14 @@ const LogoutModal = ({ isOpen, onClose }: ProfileModalProps) => {
             <button
               onClick={onClose}
               disabled={loading}
-              className="flex-1 py-2.5 rounded-lg border border-white/10 text-[var(--text-main)] hover:bg-white/5 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-2.5 rounded-lg border border-white/10 text-[var(--text-main)] hover:bg-white/5 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirmLogout}
               disabled={loading}
-              className="flex-1 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+              className="flex-1 py-2.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait cursor-pointer"
             >
               {loading ? (
                 <>

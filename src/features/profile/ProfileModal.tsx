@@ -17,7 +17,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors cursor-pointer"
         >
           <X className="h-5 w-5" />
         </button>

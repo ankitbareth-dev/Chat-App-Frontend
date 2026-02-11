@@ -14,12 +14,19 @@ interface ChatState {
   searchResults: PublicUser[];
   searchLoading: boolean;
   searchError: string | null;
+  chatList: PublicUser[];
+  chatListLoading: boolean;
+  chatListError: string | null;
 }
 
 const initialState: ChatState = {
   searchResults: [],
   searchLoading: false,
   searchError: null,
+
+  chatList: [],
+  chatListLoading: false,
+  chatListError: null,
 };
 
 export const searchUsers = createAppAsyncThunk<
@@ -39,6 +46,32 @@ export const searchUsers = createAppAsyncThunk<
     if (!res.ok) {
       const errorData = await res.json();
       return rejectWithValue(errorData.message || "Search failed");
+    }
+
+    const data = await res.json();
+    return data.data;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      return rejectWithValue(err.message);
+    }
+    return rejectWithValue("Unexpected error occurred");
+  }
+});
+
+export const fetchChatList = createAppAsyncThunk<
+  PublicUser[],
+  void,
+  { rejectValue: string }
+>("chat/fetchChatList", async (_, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`${ENV.API_BASE_URL}/api/chats/list`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      return rejectWithValue(errorData.message || "Failed to fetch chats");
     }
 
     const data = await res.json();
@@ -74,6 +107,21 @@ const chatSlice = createSlice({
         state.searchLoading = false;
         state.searchResults = [];
         state.searchError = action.payload ?? "Failed to fetch users";
+      });
+
+    builder
+      .addCase(fetchChatList.pending, (state) => {
+        state.chatListLoading = true;
+        state.chatListError = null;
+      })
+      .addCase(fetchChatList.fulfilled, (state, action) => {
+        state.chatListLoading = false;
+        state.chatList = action.payload;
+      })
+      .addCase(fetchChatList.rejected, (state, action) => {
+        state.chatListLoading = false;
+        state.chatList = [];
+        state.chatListError = action.payload ?? "Failed to load chats";
       });
   },
 });

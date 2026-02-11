@@ -3,7 +3,6 @@ import LandingPageWrapper from "./features/landing/LandingPageWrapper";
 import AuthPage from "./features/auth/AuthPage";
 import ChatLayout from "./features/chat/ChatLayout";
 
-import Spinner from "./components/Spinner";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 
@@ -11,6 +10,7 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { checkAuth } from "./features/auth/authSlice";
 import { selectAuth } from "./features/auth/authSlice";
 import { useEffect } from "react";
+import SplashScreen from "./components/SplashScreen";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -21,7 +21,7 @@ function App() {
   }, [dispatch]);
 
   if (initialLoading) {
-    return <Spinner />;
+    return <SplashScreen />;
   }
 
   return (

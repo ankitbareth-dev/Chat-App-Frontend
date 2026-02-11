@@ -1,17 +1,14 @@
 import { X } from "lucide-react";
+import { useAppSelector } from "../../app/hooks";
+import { selectAuth } from "../auth/authSlice";
 
-const USER_PROFILE = {
-  name: "Alex Morgan",
-  email: "alex.morgan@example.com",
-  phone: "+1 (555) 012-3456",
-  avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-};
 type ProfileModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
 const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
+  const { user } = useAppSelector(selectAuth);
   if (!isOpen) return null;
 
   return (
@@ -31,7 +28,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
           <div className="relative mb-4">
             <div className="h-24 w-24 rounded-full p-1 border-2 border-[var(--brand-primary)]/30 shadow-[0_0_20px_rgba(99,102,241,0.3)]">
               <img
-                src={USER_PROFILE.avatar}
+                src={user?.profilePicture}
                 alt="Profile"
                 className="h-full w-full rounded-full object-cover border-4 border-[var(--bg-card)]"
               />
@@ -40,7 +37,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
 
           {/* Name */}
           <h2 className="text-2xl font-bold text-[var(--text-main)] mb-1">
-            {USER_PROFILE.name}
+            {user?.name}
           </h2>
 
           {/* Email & Phone */}
@@ -50,7 +47,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 Email
               </span>
               <p className="text-[var(--text-main)] text-sm bg-[var(--bg-deep)]/50 py-2 px-4 rounded-lg w-full border border-white/5">
-                {USER_PROFILE.email}
+                {user?.email}
               </p>
             </div>
 
@@ -59,7 +56,7 @@ const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 Phone
               </span>
               <p className="text-[var(--text-main)] text-sm bg-[var(--bg-deep)]/50 py-2 px-4 rounded-lg w-full border border-white/5">
-                {USER_PROFILE.phone}
+                {user?.phone}
               </p>
             </div>
           </div>

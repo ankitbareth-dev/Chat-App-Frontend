@@ -70,9 +70,9 @@ export const loginUser = createAppAsyncThunk<
       return rejectWithValue(errorBody.message || "Login failed");
     }
 
-    const data: AuthApiSuccessResponse<User> = await res.json();
+    const data: AuthApiSuccessResponse<{ user: User }> = await res.json();
 
-    return data.data;
+    return data.data.user;
   } catch (err: unknown) {
     if (err instanceof Error) {
       return rejectWithValue(err.message);

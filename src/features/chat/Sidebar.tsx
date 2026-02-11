@@ -9,7 +9,6 @@ import AddFriendModal from "../chat/AddFriendModal";
 const Sidebar = () => {
   const dispatch = useAppDispatch();
 
-  // Select Chat List State
   const { chatList, chatListLoading, chatListError } =
     useAppSelector(selectChat);
 
@@ -149,10 +148,6 @@ const Sidebar = () => {
                     >
                       {user.name}
                     </h3>
-                    {/* Time placeholder - API doesn't provide it yet */}
-                    {/* <span className="text-xs text-[var(--text-muted)]">
-                      {chat.time}
-                    </span> */}
                   </div>
                   {/* Message placeholder - API doesn't provide it yet */}
                   <p className="truncate text-xs text-[var(--text-muted)]">

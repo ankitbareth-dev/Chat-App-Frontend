@@ -168,10 +168,21 @@ const authSlice = createSlice({
         state.error = action.payload ?? "Login failed";
       });
 
-    builder.addCase(logoutUser.fulfilled, (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-    });
+    builder
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+        state.user = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? "Logout failed";
+      });
 
     builder
       .addCase(checkAuth.pending, (state) => {

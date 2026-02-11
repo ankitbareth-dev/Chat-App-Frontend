@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LogOut, User, UserPlus } from "lucide-react";
 import ProfileModal from "../profile/ProfileModal";
+import LogoutModal from "../auth/LogoutModal";
 
 const DUMMY_CHATS = [
   {
@@ -35,10 +36,16 @@ const DUMMY_CHATS = [
 const Sidebar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); // New state
 
   const handleProfileClick = () => {
     setIsDropdownOpen(false);
     setIsProfileModalOpen(true);
+  };
+
+  const handleLogoutClick = () => {
+    setIsDropdownOpen(false);
+    setIsLogoutModalOpen(true);
   };
 
   return (
@@ -71,8 +78,10 @@ const Sidebar = () => {
                   Profile
                 </button>
                 <div className="h-px bg-white/5 w-full"></div>
+
+                {/* Updated Logout Button */}
                 <button
-                  onClick={() => setIsDropdownOpen(false)}
+                  onClick={handleLogoutClick}
                   className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-3 transition-colors cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" />
@@ -136,10 +145,15 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* --- SEPARATE PROFILE MODAL --- */}
+      {/* Modals */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
+      />
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
       />
     </>
   );

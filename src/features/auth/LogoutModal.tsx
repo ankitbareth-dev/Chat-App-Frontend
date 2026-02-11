@@ -23,7 +23,7 @@ const LogoutModal = ({ isOpen, onClose }: LogoutModalProps) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up">
-      <div className="bg-[var(--bg-card)] w-full max-w-sm rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
+      <div className="bg-[var(--bg-deep)] w-full max-w-sm rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
         {/* Close Button */}
         {!loading && (
           <button

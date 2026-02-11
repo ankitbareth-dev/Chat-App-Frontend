@@ -40,7 +40,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="w-80 flex-col border-r border-white/5 bg-[var(--bg-surface)] hidden md:flex h-full">
+      <aside className="w-80 flex-col border-r border-white/5 bg-[var(--bg-deep)] hidden md:flex h-full">
         <div className="p-4 flex items-center justify-between border-b border-white/5 relative z-20">
           <img
             src="/App-Logo.png"
@@ -59,7 +59,7 @@ const Sidebar = () => {
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-card)] backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in-up">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-deep)] backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in-up">
                 <button
                   onClick={handleProfileClick}
                   className="w-full text-left px-4 py-3 text-sm text-[var(--text-main)] hover:bg-white/5 flex items-center gap-3 transition-colors cursor-pointer"
@@ -163,7 +163,7 @@ const Sidebar = () => {
             ))}
         </div>
 
-        <div className="p-4 border-t border-white/5 bg-[var(--bg-surface)]">
+        <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)]">
           <button
             onClick={handleAddFriendClick}
             className="w-full flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-white/20 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] hover:text-[var(--brand-accent)] transition-all text-sm font-medium group cursor-pointer"

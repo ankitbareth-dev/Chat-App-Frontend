@@ -1,4 +1,5 @@
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { LogOut, User } from "lucide-react";
 
 const DUMMY_CHATS = [
   {
@@ -31,24 +32,54 @@ const DUMMY_CHATS = [
 ];
 
 const Sidebar = () => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
     <aside className="w-80 flex-col border-r border-white/5 bg-[var(--bg-surface)] hidden md:flex h-full">
-      {/* Sidebar Header */}
-      <div className="p-4 border-b border-white/5">
-        <h2 className="text-xl font-bold text-[var(--text-main)] mb-4">
-          Messages
-        </h2>
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--text-muted)]" />
-          <input
-            type="text"
-            placeholder="Search chats..."
-            className="w-full rounded-lg bg-[var(--bg-deep)] border border-white/10 py-2 pl-9 pr-4 text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] focus:border-[var(--brand-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--brand-primary)] transition-colors"
-          />
+      {/* --- SECTION 1: TOP (Logo & Dropdown) --- */}
+      <div className="p-4 flex items-center justify-between border-b border-white/5 relative z-20">
+        {/* App Logo */}
+        <img
+          src="/App-Logo.png"
+          alt="App Logo"
+          className="h-8 w-auto object-contain"
+        />
+
+        {/* User Dropdown Trigger */}
+        <div className="relative ">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 rounded-full p-1 hover:bg-white/5 transition-colors group"
+          >
+            <div className="h-8 w-8 rounded-full bg-[var(--bg-deep)] flex items-center justify-center border border-white/10 group-hover:border-[var(--brand-primary)] transition-colors cursor-pointer">
+              <User className="h-4 w-4 text-[var(--text-muted)]" />
+            </div>
+          </button>
+
+          {/* Dropdown Menu */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-card)] backdrop-blur-md border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden animate-fade-in-up">
+              <button
+                onClick={() => setIsDropdownOpen(false)}
+                className="w-full text-left px-4 py-3 text-sm text-[var(--text-main)] hover:bg-white/5 flex items-center gap-3 transition-colors cursor-pointer"
+              >
+                <User className="h-4 w-4 text-[var(--text-muted)]" />
+                Profile
+              </button>
+              <div className="h-px bg-white/5 w-full"></div>
+              <button
+                onClick={() => setIsDropdownOpen(false)}
+                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center gap-3 transition-colors cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Chat List */}
+      {/* --- SECTION 3: BOTTOM (Chat List) --- */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {DUMMY_CHATS.map((chat) => (
           <button
@@ -74,7 +105,11 @@ const Sidebar = () => {
             <div className="flex-1 text-left">
               <div className="flex justify-between items-center mb-0.5">
                 <h3
-                  className={`text-sm font-medium ${chat.active ? "text-[var(--brand-primary)]" : "text-[var(--text-main)]"}`}
+                  className={`text-sm font-medium ${
+                    chat.active
+                      ? "text-[var(--brand-primary)]"
+                      : "text-[var(--text-main)]"
+                  }`}
                 >
                   {chat.name}
                 </h3>

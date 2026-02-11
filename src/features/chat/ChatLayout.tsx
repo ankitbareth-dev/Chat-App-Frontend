@@ -1,8 +1,6 @@
 const ChatLayout = () => {
   return (
-    <div className="h-screen flex flex-col bg-[var(--bg-deep)] overflow-hidden">
-      <div>Hello</div>
-    </div>
+    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-deep)] font-sans"></div>
   );
 };
 

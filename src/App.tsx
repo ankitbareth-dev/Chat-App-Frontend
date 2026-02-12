@@ -23,19 +23,28 @@ function App() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const socket = connectSocket();
-
-      socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
-      });
-
-      socket.on("disconnect", () => {
-        console.log("Socket disconnected");
-      });
-    } else {
+    if (!isAuthenticated) {
       disconnectSocket();
+      return;
     }
+
+    const socket = connectSocket();
+
+    const onConnect = () => {
+      console.log("Socket connected:", socket.id);
+    };
+
+    const onDisconnect = () => {
+      console.log("Socket disconnected");
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
   }, [isAuthenticated]);
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useAppSelector } from "../../app/hooks";
 import { selectChat } from "./chatSlice";
 import { useEffect, useState, useRef } from "react";
 import { getSocket } from "../../app/socket";
+import TypingIndicator from "../../components/TypingIndicator";
 
 const ChatWindow = () => {
   const { activeChatUser } = useAppSelector(selectChat);
@@ -35,6 +36,7 @@ const ChatWindow = () => {
     return () => {
       socket.off("user_typing", handleUserTyping);
       socket.off("user_stopped_typing", handleUserStoppedTyping);
+      setIsRemoteTyping(false);
     };
   }, [activeChatUser]);
 
@@ -58,12 +60,12 @@ const ChatWindow = () => {
 
   useEffect(() => {
     return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
       const socket = getSocket();
       if (socket && activeChatUser) {
         socket.emit("stop_typing", { receiverId: activeChatUser.id });
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
       }
     };
   }, [activeChatUser]);
@@ -85,7 +87,7 @@ const ChatWindow = () => {
   }
 
   return (
-    <main className="flex-1 h-full bg-[var(--bg-deep)] flex flex-col">
+    <main className="flex-1 h-full bg-[var(--bg-deep)] flex flex-col relative">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-10">
         <div className="flex items-center gap-4">
@@ -98,13 +100,8 @@ const ChatWindow = () => {
             <h3 className="font-bold text-lg text-[var(--text-main)]">
               {activeChatUser.name}
             </h3>
-            {/* Show typing indicator or phone number */}
             <p className="text-xs text-[var(--text-muted)]">
-              {isRemoteTyping ? (
-                <span className="text-[var(--brand-primary)]">Typing...</span>
-              ) : (
-                activeChatUser.phone
-              )}
+              {activeChatUser.phone}
             </p>
           </div>
         </div>
@@ -121,9 +118,22 @@ const ChatWindow = () => {
         </div>
       </header>
 
-      {/* Messages Area (Placeholder) */}
-      <div className="flex-1 flex items-center justify-center text-[var(--text-muted)]">
-        <p>Chat history will appear here.</p>
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-6 flex flex-col justify-end">
+        {/* 
+           We place the indicator at the bottom of the chat area, 
+           just above where the new message would appear.
+        */}
+        {isRemoteTyping && (
+          <div className="flex justify-start mb-4 animate-fade-in-up">
+            <TypingIndicator />
+          </div>
+        )}
+
+        {/* Placeholder text if no messages exist yet */}
+        <div className="flex-1 flex items-center justify-center text-[var(--text-muted)]">
+          {!isRemoteTyping && <p>Chat history will appear here.</p>}
+        </div>
       </div>
 
       {/* Input Area */}

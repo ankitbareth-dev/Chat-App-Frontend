@@ -1,9 +1,72 @@
-import { MessageCircle, Phone, Video, MoreVertical } from "lucide-react";
+import { MessageCircle, Phone, Video, MoreVertical, Send } from "lucide-react";
 import { useAppSelector } from "../../app/hooks";
 import { selectChat } from "./chatSlice";
+import { useEffect, useState, useRef } from "react";
+import { getSocket } from "../../app/socket";
 
 const ChatWindow = () => {
   const { activeChatUser } = useAppSelector(selectChat);
+
+  const [message, setMessage] = useState("");
+
+  const [isRemoteTyping, setIsRemoteTyping] = useState(false);
+
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !activeChatUser) return;
+
+    const handleUserTyping = (data: { senderId: string }) => {
+      if (data.senderId === activeChatUser.id) {
+        setIsRemoteTyping(true);
+      }
+    };
+
+    const handleUserStoppedTyping = (data: { senderId: string }) => {
+      if (data.senderId === activeChatUser.id) {
+        setIsRemoteTyping(false);
+      }
+    };
+
+    socket.on("user_typing", handleUserTyping);
+    socket.on("user_stopped_typing", handleUserStoppedTyping);
+
+    return () => {
+      socket.off("user_typing", handleUserTyping);
+      socket.off("user_stopped_typing", handleUserStoppedTyping);
+    };
+  }, [activeChatUser]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMessage(value);
+
+    const socket = getSocket();
+    if (!socket || !activeChatUser) return;
+
+    socket.emit("start_typing", { receiverId: activeChatUser.id });
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop_typing", { receiverId: activeChatUser.id });
+    }, 2000);
+  };
+
+  useEffect(() => {
+    return () => {
+      const socket = getSocket();
+      if (socket && activeChatUser) {
+        socket.emit("stop_typing", { receiverId: activeChatUser.id });
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [activeChatUser]);
 
   if (!activeChatUser) {
     return (
@@ -35,8 +98,13 @@ const ChatWindow = () => {
             <h3 className="font-bold text-lg text-[var(--text-main)]">
               {activeChatUser.name}
             </h3>
+            {/* Show typing indicator or phone number */}
             <p className="text-xs text-[var(--text-muted)]">
-              {activeChatUser.phone}
+              {isRemoteTyping ? (
+                <span className="text-[var(--brand-primary)]">Typing...</span>
+              ) : (
+                activeChatUser.phone
+              )}
             </p>
           </div>
         </div>
@@ -53,8 +121,28 @@ const ChatWindow = () => {
         </div>
       </header>
 
+      {/* Messages Area (Placeholder) */}
       <div className="flex-1 flex items-center justify-center text-[var(--text-muted)]">
         <p>Chat history will appear here.</p>
+      </div>
+
+      {/* Input Area */}
+      <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)]">
+        <div className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl p-2">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={message}
+            onChange={handleInputChange}
+            className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none px-3 py-1"
+          />
+          <button
+            className="p-2 rounded-lg bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!message.trim()}
+          >
+            <Send className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </main>
   );

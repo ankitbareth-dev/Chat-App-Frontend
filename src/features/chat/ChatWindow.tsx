@@ -6,133 +6,86 @@ import {
   Send,
   Check,
   Clock,
+  Loader2,
+  ChevronUp,
+  AlertCircle,
 } from "lucide-react";
-import { useAppSelector } from "../../app/hooks";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
-import { selectChat } from "./chatSlice";
+import {
+  selectChat,
+  fetchChatHistory,
+  addMessage,
+  updateMessageStatus,
+} from "./chatSlice";
 import { useEffect, useState, useRef } from "react";
 import { getSocket } from "../../app/socket";
 import TypingIndicator from "../../components/TypingIndicator";
-
-interface Message {
-  id: string;
-  tempId?: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
-  createdAt: string | Date;
-  status?: "sending" | "sent";
-}
+import type { ChatMessage } from "../../types/chat.types";
 
 const ChatWindow = () => {
-  const { activeChatUser } = useAppSelector(selectChat);
+  const dispatch = useAppDispatch();
+  const {
+    activeChatUser,
+    messages,
+    isLoadingHistory,
+    historyError,
+    hasMore,
+    currentPage,
+    chatList,
+  } = useAppSelector(selectChat);
   const { user } = useAppSelector(selectAuth);
 
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
   const [isRemoteTyping, setIsRemoteTyping] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const isUserInChatList = activeChatUser
+    ? chatList.some((u) => u.id === activeChatUser.id)
+    : false;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (activeChatUser && isUserInChatList) {
+      dispatch(fetchChatHistory({ receiverId: activeChatUser.id, page: 1 }));
+    }
+  }, [activeChatUser, dispatch, isUserInChatList]);
+
+  useEffect(() => {
+    if (!isLoadingHistory && currentPage === 1) {
+      scrollToBottom();
+    }
+  }, [isLoadingHistory, currentPage]);
 
   useEffect(() => {
     const socket = getSocket();
     if (!socket || !activeChatUser) return;
 
-    const handleReceiveMessage = (newMessage: Message) => {
+    const handleReceiveMessage = (newMessage: ChatMessage) => {
       if (newMessage.senderId === activeChatUser.id) {
-        setMessages((prev) => [...prev, { ...newMessage, status: "sent" }]);
+        dispatch(addMessage(newMessage));
       }
     };
 
-    const handleMessageSent = (confirmedMessage: Message) => {
-      setMessages((prev) => {
-        return prev.map((msg) =>
-          msg.status === "sending" &&
-          msg.content === confirmedMessage.content &&
-          msg.senderId === user?.id
-            ? { ...confirmedMessage, status: "sent" }
-            : msg,
-        );
-      });
-    };
-
-    const handleErrorMessage = (errorMessage: string) => {
-      console.error("Socket Error:", errorMessage);
+    const handleMessageSent = (confirmedMessage: ChatMessage) => {
+      dispatch(
+        updateMessageStatus({
+          content: confirmedMessage.content,
+          senderId: confirmedMessage.senderId,
+          confirmedMessage: confirmedMessage,
+        }),
+      );
     };
 
     socket.on("receive_message", handleReceiveMessage);
     socket.on("message_sent", handleMessageSent);
-    socket.on("error_message", handleErrorMessage);
-
-    return () => {
-      socket.off("receive_message", handleReceiveMessage);
-      socket.off("message_sent", handleMessageSent);
-      socket.off("error_message", handleErrorMessage);
-    };
-  }, [activeChatUser, user?.id]);
-
-  useEffect(() => {
-    setMessages([]);
-  }, [activeChatUser?.id]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setMessage(value);
-
-    const socket = getSocket();
-    if (!socket || !activeChatUser) return;
-
-    socket.emit("start_typing", { receiverId: activeChatUser.id });
-
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-
-    typingTimeoutRef.current = setTimeout(() => {
-      socket.emit("stop_typing", { receiverId: activeChatUser.id });
-    }, 2000);
-  };
-
-  const handleSendMessage = () => {
-    if (!message.trim() || !activeChatUser || !user) return;
-
-    const socket = getSocket();
-    const tempId = `temp-${Date.now()}`;
-    const messageContent = message;
-
-    const optimisticMessage: Message = {
-      id: tempId,
-      tempId: tempId,
-      senderId: user.id,
-      receiverId: activeChatUser.id,
-      content: messageContent,
-      createdAt: new Date(),
-      status: "sending",
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
-    setMessage("");
-
-    socket.emit("send_message", {
-      receiverId: activeChatUser.id,
-      content: messageContent,
-    });
-
-    socket.emit("stop_typing", { receiverId: activeChatUser.id });
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-  };
-
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket || !activeChatUser) return;
 
     const handleUserTyping = (data: { senderId: string }) => {
       if (data.senderId === activeChatUser.id) setIsRemoteTyping(true);
@@ -140,15 +93,67 @@ const ChatWindow = () => {
     const handleUserStoppedTyping = (data: { senderId: string }) => {
       if (data.senderId === activeChatUser.id) setIsRemoteTyping(false);
     };
-
     socket.on("user_typing", handleUserTyping);
     socket.on("user_stopped_typing", handleUserStoppedTyping);
 
     return () => {
+      socket.off("receive_message", handleReceiveMessage);
+      socket.off("message_sent", handleMessageSent);
       socket.off("user_typing", handleUserTyping);
       socket.off("user_stopped_typing", handleUserStoppedTyping);
     };
-  }, [activeChatUser]);
+  }, [activeChatUser, dispatch]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMessage(e.target.value);
+    const socket = getSocket();
+    if (!socket || !activeChatUser) return;
+
+    socket.emit("start_typing", { receiverId: activeChatUser.id });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop_typing", { receiverId: activeChatUser.id });
+    }, 2000);
+  };
+
+  const handleSendMessage = () => {
+    if (!inputMessage.trim() || !activeChatUser || !user) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+    const tempId = `temp-${Date.now()}`;
+    const messageContent = inputMessage;
+
+    const optimisticMessage = {
+      id: tempId,
+      senderId: user.id,
+      receiverId: activeChatUser.id,
+      content: messageContent,
+      timestamp: new Date().toISOString(),
+      status: "sending" as const,
+    };
+    dispatch(addMessage(optimisticMessage));
+
+    setInputMessage("");
+    scrollToBottom();
+
+    socket.emit("send_message", {
+      receiverId: activeChatUser.id,
+      content: messageContent,
+    });
+
+    socket.emit("stop_typing", { receiverId: activeChatUser.id });
+  };
+
+  const handleLoadMore = () => {
+    if (isLoadingHistory || !hasMore || !activeChatUser) return;
+    dispatch(
+      fetchChatHistory({
+        receiverId: activeChatUser.id,
+        page: currentPage + 1,
+      }),
+    );
+  };
 
   if (!activeChatUser) {
     return (
@@ -185,7 +190,6 @@ const ChatWindow = () => {
             </p>
           </div>
         </div>
-        {/* Header Icons */}
         <div className="flex items-center gap-2">
           <button className="p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] transition-colors">
             <Phone className="h-5 w-5" />
@@ -199,60 +203,89 @@ const ChatWindow = () => {
         </div>
       </header>
 
-      {/* Messages List */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.length === 0 && !isRemoteTyping && (
-          <div className="flex items-center justify-center h-full text-[var(--text-muted)]">
-            <p>No messages yet. Say hi! 👋</p>
-          </div>
-        )}
-
-        {messages.map((msg) => {
-          const isMine = msg.senderId === user?.id;
-          return (
-            <div
-              key={msg.id}
-              className={`flex w-full ${isMine ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`relative max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${
-                  isMine
-                    ? "bg-[var(--brand-primary)] text-white rounded-br-none"
-                    : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
-                }`}
+      {/* Messages Area */}
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-6 flex flex-col-reverse"
+      >
+        <div className="flex flex-col justify-end min-h-full">
+          {/* Load More Button */}
+          {hasMore && isUserInChatList && (
+            <div className="flex justify-center py-2 mb-4">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoadingHistory}
+                className="flex items-center gap-2 text-xs text-[var(--brand-primary)] hover:text-[var(--brand-accent)] bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition-colors disabled:opacity-50"
               >
-                <p className="text-sm">{msg.content}</p>
+                {isLoadingHistory ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ChevronUp className="h-4 w-4" />
+                )}
+                {isLoadingHistory ? "Loading..." : "Load Older Messages"}
+              </button>
+            </div>
+          )}
 
-                {/* Status Indicator (Only for my messages) */}
-                {isMine && (
+          {historyError && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-xs">
+              <AlertCircle className="h-4 w-4" /> {historyError}
+            </div>
+          )}
+
+          {/* Chat History not available if user not in list */}
+          {!isUserInChatList && (
+            <div className="flex items-center justify-center h-full text-[var(--text-muted)] mb-4">
+              <p>No chat history available. Start the conversation!</p>
+            </div>
+          )}
+
+          {/* Message List */}
+          {messages.map((msg) => {
+            const isMine = msg.senderId === user?.id;
+            // @ts-expect-error - status is custom UI state
+            const isSending = msg.status === "sending";
+
+            return (
+              <div
+                key={msg.id}
+                className={`flex w-full ${isMine ? "justify-end" : "justify-start"} mb-2`}
+              >
+                <div
+                  className={`relative max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${
+                    isMine
+                      ? "bg-[var(--brand-primary)] text-white rounded-br-none"
+                      : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
+                  }`}
+                >
+                  <p className="text-sm">{msg.content}</p>
                   <div className="flex items-center justify-end gap-1 mt-1">
                     <span className="text-[10px] opacity-70">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
                     </span>
-
-                    {msg.status === "sending" ? (
-                      <Clock className="h-3 w-3 opacity-70 animate-pulse" />
-                    ) : (
-                      <Check className="h-3 w-3 opacity-90" />
-                    )}
+                    {isMine &&
+                      (isSending ? (
+                        <Clock className="h-3 w-3 opacity-70 animate-pulse" />
+                      ) : (
+                        <Check className="h-3 w-3 opacity-90" />
+                      ))}
                   </div>
-                )}
+                </div>
               </div>
+            );
+          })}
+
+          {isRemoteTyping && (
+            <div className="flex justify-start mb-2">
+              <TypingIndicator />
             </div>
-          );
-        })}
+          )}
 
-        {/* Remote Typing Indicator */}
-        {isRemoteTyping && (
-          <div className="flex justify-start">
-            <TypingIndicator />
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {/* Input Area */}
@@ -261,15 +294,15 @@ const ChatWindow = () => {
           <input
             type="text"
             placeholder="Type a message..."
-            value={message}
+            value={inputMessage}
             onChange={handleInputChange}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
             className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none px-3 py-1"
           />
           <button
             onClick={handleSendMessage}
-            className="p-2 rounded-lg bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!message.trim()}
+            className="p-2 rounded-lg bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors disabled:opacity-50"
+            disabled={!inputMessage.trim()}
           >
             <Send className="h-5 w-5" />
           </button>

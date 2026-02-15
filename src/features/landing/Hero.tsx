@@ -34,7 +34,7 @@ export const Hero = () => {
   return (
     <section
       ref={containerRef}
-      className="relative h-[100vh] flex items-center justify-center pt-32 pb-12 overflow-hidden"
+      className="relative h-[100vh] flex items-center justify-center pt-22 pb-10 overflow-hidden"
     >
       <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div className="space-y-6 text-center lg:text-left">
@@ -96,7 +96,6 @@ export const Hero = () => {
               </button>
             </div>
 
-            {/* Chat Body - Compressed height for viewport */}
             <div className="space-y-4">
               {/* Message Received */}
               <div className="flex items-end gap-3">

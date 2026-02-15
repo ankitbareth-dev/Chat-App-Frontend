@@ -1,9 +1,8 @@
-import { CTA } from "./CTA";
 import { Features } from "./Features";
 import { Footer } from "./Footer";
 import { Hero } from "./Hero";
+import { HowItWorks } from "./HowItWorks";
 import { Navbar } from "./Navbar";
-import { Testimonials } from "./Testimonials";
 
 const LandingPageWrapper = () => {
   return (
@@ -13,8 +12,7 @@ const LandingPageWrapper = () => {
       <main className="relative z-10">
         <Hero />
         <Features />
-        <Testimonials />
-        <CTA />
+        <HowItWorks />
       </main>
       <Footer />
     </div>

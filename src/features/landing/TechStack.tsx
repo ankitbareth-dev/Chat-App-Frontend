@@ -83,7 +83,7 @@ export const TechStack = () => {
   ];
 
   return (
-    <section ref={containerRef} className="py-10 relative z-10">
+    <section id="tech-stack" ref={containerRef} className="py-10 relative z-10">
       <div className="container mx-auto px-6 max-w-6xl">
         {/* Header */}
         <div className="tech-header text-center mb-16">

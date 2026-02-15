@@ -75,6 +75,7 @@ export const HowItWorks = () => {
 
   return (
     <section
+      id="how-it-works"
       ref={containerRef}
       className="py-32 relative z-10 bg-[var(--bg-deep)]/50"
     >

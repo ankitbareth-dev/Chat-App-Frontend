@@ -68,7 +68,7 @@ export const Features = () => {
   ];
 
   return (
-    <section ref={containerRef} className="py-4 relative z-10">
+    <section id="features" ref={containerRef} className="py-4 relative z-10">
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12 md:mb-16 px-4">

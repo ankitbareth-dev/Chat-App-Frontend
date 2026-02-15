@@ -17,6 +17,27 @@ export const Navbar = () => {
 
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
+  const navLinks = [
+    { label: "Features", id: "features" },
+    { label: "How It Works", id: "how-it-works" },
+    { label: "Tech Stack", id: "tech-stack" },
+  ];
+
+  const scrollToSection = (id: string) => {
+    setIsMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <nav
       ref={navRef}
@@ -38,15 +59,15 @@ export const Navbar = () => {
 
         {/* Desktop Middle links */}
         <div className="hidden md:flex items-center gap-8">
-          {["Features", "Security", "About"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors relative pb-1 group"
+          {navLinks.map((link) => (
+            <button
+              key={link.id}
+              onClick={() => scrollToSection(link.id)}
+              className="text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors relative pb-1 group cursor-pointer"
             >
-              {item}
+              {link.label}
               <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-[var(--brand-primary)] group-hover:w-full transition-all duration-300 ease-in-out"></span>
-            </a>
+            </button>
           ))}
         </div>
 
@@ -79,15 +100,14 @@ export const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="mt-2 md:hidden rounded-2xl border border-white/10 bg-[var(--bg-card)] backdrop-blur-xl shadow-xl p-6 flex flex-col gap-4 animate-fade-in-up">
           {/* Mobile Links */}
-          {["Features", "Security", "About"].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className="text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors py-2 border-b border-white/5 last:border-0"
-              onClick={() => setIsMobileMenuOpen(false)}
+          {navLinks.map((link) => (
+            <button
+              key={link.id}
+              onClick={() => scrollToSection(link.id)}
+              className="text-left text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors py-2 border-b border-white/5 last:border-0"
             >
-              {item}
-            </a>
+              {link.label}
+            </button>
           ))}
 
           {/* Mobile Button */}

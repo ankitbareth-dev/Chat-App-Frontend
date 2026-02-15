@@ -1,15 +1,27 @@
 import { UserPlus, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const navRef = useRef<HTMLElement>(null);
+
+  useOnClickOutside(navRef, () => {
+    if (isMobileMenuOpen) {
+      setIsMobileMenuOpen(false);
+    }
+  });
+
   const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[97%] max-w-7xl z-50">
+    <nav
+      ref={navRef}
+      className="fixed top-6 left-1/2 -translate-x-1/2 w-[97%] max-w-7xl z-50"
+    >
       {/* Main Navbar Container */}
       <div className="flex items-center justify-between px-6 md:px-8 h-[60px] rounded-2xl border border-white/10 bg-[var(--bg-card)] backdrop-blur-xl shadow-xl">
         {/* Logo section */}
@@ -72,7 +84,7 @@ export const Navbar = () => {
               key={item}
               href="#"
               className="text-sm font-medium text-[var(--text-muted)] hover:text-white transition-colors py-2 border-b border-white/5 last:border-0"
-              onClick={() => setIsMobileMenuOpen(false)} // Close menu on click
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               {item}
             </a>

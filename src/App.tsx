@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import SplashScreen from "./components/SplashScreen";
 
 import { connectSocket, disconnectSocket } from "./app/socket";
+import { Toaster } from "sonner";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -65,6 +66,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-right" richColors closeButton />
       <Routes>
         <Route
           path="/"

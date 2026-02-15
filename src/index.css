@@ -33,6 +33,7 @@ body {
 .gsap-animate {
   will-change: transform, opacity;
 }
+
 @keyframes fade-in-up {
   0% {
     opacity: 0;

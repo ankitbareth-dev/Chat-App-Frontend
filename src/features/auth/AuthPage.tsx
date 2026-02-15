@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Loader2,
@@ -11,9 +11,14 @@ import {
   Zap,
   User,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { loginUser, signupUser } from "../../features/auth/authSlice";
+import {
+  loginUser,
+  resetError,
+  signupUser,
+} from "../../features/auth/authSlice";
 import { selectAuth } from "../../features/auth/authSlice";
 
 const AuthPage = () => {
@@ -30,10 +35,17 @@ const AuthPage = () => {
     password: "",
   });
 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      dispatch(resetError());
+    }
+  }, [error, dispatch]);
+
   const handleToggle = () => {
     setIsLogin(!isLogin);
     setFormData({ name: "", email: "", phone: "", password: "" });
-    dispatch({ type: "auth/resetError" });
+    dispatch(resetError());
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,7 +73,8 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-full grid lg:grid-cols-2 bg-[var(--bg-deep)]">
+    <div className="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-2 bg-[var(--bg-deep)] overflow-y-auto">
+      {/* Left Side  */}
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-center items-center p-12 border-r border-white/5">
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none z-0 opacity-40" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[var(--brand-primary)]/10 rounded-full blur-[100px] pointer-events-none" />
@@ -106,26 +119,15 @@ const AuthPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col justify-center items-center p-8 relative">
+      {/* Right Side (Form) */}
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 relative lg:min-h-0 lg:flex-1">
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--brand-accent)]/5 rounded-full blur-[80px] pointer-events-none" />
 
         <div className="w-full max-w-md z-10 animate-fade-in-up">
           <div className="mb-10">
-            <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center text-white font-bold">
-                A
-              </div>
-              <span className="text-xl font-bold text-white">App Name</span>
-            </div>
-
             <h2 className="text-3xl font-bold text-white mb-2">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h2>
-            <p className="text-[var(--text-muted)]">
-              {isLogin
-                ? "Enter your phone number to continue."
-                : "Enter your details to get started."}
-            </p>
           </div>
 
           <div className="flex bg-[var(--bg-surface)]/50 p-1 rounded-xl mb-8 border border-white/5 relative max-w-[300px]">
@@ -155,12 +157,6 @@ const AuthPage = () => {
               Sign Up
             </button>
           </div>
-
-          {error && (
-            <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (

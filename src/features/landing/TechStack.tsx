@@ -76,7 +76,7 @@ export const TechStack = () => {
     {
       title: "Deployment",
       icon: <Cloud className="h-8 w-8 text-pink-400" />,
-      items: ["Render"],
+      items: ["Vercel (Frontend)", "Render (Backend)"],
       gradient: "from-pink-500/10 to-transparent",
       borderHover: "hover:border-pink-500/30",
     },

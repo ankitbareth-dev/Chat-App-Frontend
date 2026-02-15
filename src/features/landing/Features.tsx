@@ -74,17 +74,14 @@ export const Features = () => {
         <div className="text-center mb-12 md:mb-16 px-4">
           <h2
             className="
-    text-2xl
-    sm:text-3xl
-    md:text-4xl
-    lg:text-5xl
-    font-bold
-    tracking-tight
-    text-white
-    leading-tight
-    max-w-3xl
-    mx-auto
-  "
+  text-[clamp(2rem,5vw,3.75rem)]
+  font-bold
+  tracking-tight
+  text-white
+  leading-tight
+  max-w-3xl
+  mx-auto
+"
           >
             Built for Fast, Private{" "}
             <span className="text-[var(--brand-primary)]">Conversations</span>

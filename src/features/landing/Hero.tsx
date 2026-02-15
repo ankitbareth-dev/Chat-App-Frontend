@@ -38,7 +38,7 @@ export const Hero = () => {
     >
       <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div className="space-y-6 text-center lg:text-left">
-          <div className="hero-title text-4xl md:text-6xl font-bold leading-tight">
+          <div className="hero-title text-[clamp(2rem,5vw,3.75rem)] font-bold leading-tight">
             Real-time chat, <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] via-purple-400 to-[var(--brand-accent)]">
               simplified.

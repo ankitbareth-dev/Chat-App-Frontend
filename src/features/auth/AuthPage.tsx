@@ -35,6 +35,10 @@ const AuthPage = () => {
     password: "",
   });
 
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -48,8 +52,51 @@ const AuthPage = () => {
     dispatch(resetError());
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    setFormData({ ...formData, phone: value });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.phone) {
+      toast.error("Phone number is required.");
+      return;
+    }
+    if (formData.phone.length !== 10) {
+      toast.error("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    if (!formData.password) {
+      toast.error("Password is required.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!isLogin) {
+      if (!formData.name.trim()) {
+        toast.error("Full name is required.");
+        return;
+      }
+      if (formData.name.trim().length < 3) {
+        toast.error("Full name must be at least 3 characters.");
+        return;
+      }
+
+      if (!formData.email) {
+        toast.error("Email address is required.");
+        return;
+      }
+      if (!isValidEmail(formData.email)) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+    }
 
     let resultAction;
 
@@ -137,6 +184,7 @@ const AuthPage = () => {
               }`}
             />
             <button
+              type="button"
               onClick={handleToggle}
               className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
                 isLogin
@@ -147,6 +195,7 @@ const AuthPage = () => {
               Login
             </button>
             <button
+              type="button"
               onClick={handleToggle}
               className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
                 !isLogin
@@ -170,7 +219,6 @@ const AuthPage = () => {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
-                  required={!isLogin}
                 />
               </div>
             )}
@@ -186,7 +234,6 @@ const AuthPage = () => {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
-                  required={!isLogin}
                 />
               </div>
             )}
@@ -197,11 +244,8 @@ const AuthPage = () => {
                 type="tel"
                 placeholder="Phone Number"
                 value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
+                onChange={handlePhoneChange}
                 className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
-                required
               />
             </div>
 
@@ -215,7 +259,6 @@ const AuthPage = () => {
                   setFormData({ ...formData, password: e.target.value })
                 }
                 className="w-full bg-[var(--bg-surface)]/30 border border-white/10 text-[var(--text-main)] pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-[var(--brand-primary)] focus:ring-1 focus:ring-[var(--brand-primary)]/50 placeholder-[var(--text-muted)] transition-all"
-                required
               />
             </div>
 

@@ -9,6 +9,7 @@ import {
   Loader2,
   ChevronUp,
   AlertCircle,
+  ArrowLeft, // 1. Import ArrowLeft
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
@@ -17,6 +18,7 @@ import {
   fetchChatHistory,
   addMessage,
   updateMessageStatus,
+  setActiveChatUser, // 2. Import setActiveChatUser
 } from "./chatSlice";
 import { useEffect, useState, useRef } from "react";
 import { getSocket } from "../../app/socket";
@@ -50,6 +52,11 @@ const ChatWindow = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // 3. Handler to go back (clears active chat, showing Sidebar on mobile)
+  const handleBackClick = () => {
+    dispatch(setActiveChatUser(null));
   };
 
   useEffect(() => {
@@ -124,13 +131,13 @@ const ChatWindow = () => {
     const tempId = `temp-${Date.now()}`;
     const messageContent = inputMessage;
 
-    const optimisticMessage = {
+    const optimisticMessage: any = {
       id: tempId,
       senderId: user.id,
       receiverId: activeChatUser.id,
       content: messageContent,
       timestamp: new Date().toISOString(),
-      status: "sending" as const,
+      status: "sending",
     };
     dispatch(addMessage(optimisticMessage));
 
@@ -174,15 +181,23 @@ const ChatWindow = () => {
   return (
     <main className="flex-1 h-full bg-[var(--bg-deep)] flex flex-col relative">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-10">
-        <div className="flex items-center gap-4">
+      <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* 4. MOBILE BACK BUTTON - Visible only on small screens */}
+          <button
+            onClick={handleBackClick}
+            className="md:hidden p-2 -ml-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+
           <img
             src={activeChatUser.profilePicture}
             alt={activeChatUser.name}
-            className="h-12 w-12 rounded-full object-cover border border-white/10"
+            className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover border border-white/10"
           />
           <div>
-            <h3 className="font-bold text-lg text-[var(--text-main)]">
+            <h3 className="font-bold text-base md:text-lg text-[var(--text-main)]">
               {activeChatUser.name}
             </h3>
             <p className="text-xs text-[var(--text-muted)]">
@@ -190,7 +205,7 @@ const ChatWindow = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <button className="p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] transition-colors">
             <Phone className="h-5 w-5" />
           </button>
@@ -243,8 +258,8 @@ const ChatWindow = () => {
           {/* Message List */}
           {messages.map((msg) => {
             const isMine = msg.senderId === user?.id;
-            // @ts-expect-error - status is custom UI state
-            const isSending = msg.status === "sending";
+            // Cast to any to access status if it's not in the type definition
+            const isSending = (msg as any).status === "sending";
 
             return (
               <div

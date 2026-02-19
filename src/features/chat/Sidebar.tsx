@@ -20,7 +20,7 @@ import LogoutModal from "../auth/LogoutModal";
 import ProfilePanel from "../profile/ProfilePanel";
 import type { ChatUser } from "../../types/chat.types";
 import useDebounce from "../../hooks/useDebounce";
-import useOnClickOutside from "../../hooks/useOnClickOutside"; // Import the hook
+import useOnClickOutside from "../../hooks/useOnClickOutside";
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
@@ -99,63 +99,64 @@ const Sidebar = () => {
         ${activeChatUser ? "-translate-x-full md:translate-x-0" : "translate-x-0"}
       `}
       >
+        {/* Header - Always Visible */}
+        <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
+              <img
+                src="/App-Logo.png"
+                alt="ChatFlow Logo"
+                className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
+              />
+            </div>
+            <h1 className="text-lg font-bold text-white tracking-tight">
+              Chat<span className="text-[var(--brand-primary)]">Flow</span>
+            </h1>
+          </div>
+
+          {/* Dropdown Container */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center gap-2 rounded-full p-1 hover:bg-white/5 transition-colors group"
+            >
+              <div className="h-9 w-9 rounded-full bg-[var(--bg-surface)] flex items-center justify-center border border-white/10 group-hover:border-[var(--brand-primary)] transition-colors cursor-pointer">
+                <User className="h-4 w-4 text-[var(--text-muted)]" />
+              </div>
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--bg-surface)] backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in-up">
+                <div className="p-2">
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full text-left px-4 py-2.5 text-sm text-[var(--text-main)] hover:bg-white/5 rounded-lg flex items-center gap-3 transition-colors cursor-pointer"
+                  >
+                    <User className="h-4 w-4 text-[var(--text-muted)]" />
+                    My Profile
+                  </button>
+                </div>
+                <div className="h-px bg-white/5 w-full"></div>
+                <div className="p-2">
+                  <button
+                    onClick={handleLogoutClick}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg flex items-center gap-3 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content Area - Conditionally renders Search + List OR Profile Panel */}
         {showProfile ? (
           <ProfilePanel onBack={() => setShowProfile(false)} />
         ) : (
           <>
-            {/* Header */}
-            <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
-                  <img
-                    src="/App-Logo.png"
-                    alt="ChatFlow Logo"
-                    className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
-                  />
-                </div>
-                <h1 className="text-lg font-bold text-white tracking-tight">
-                  Chat<span className="text-[var(--brand-primary)]">Flow</span>
-                </h1>
-              </div>
-
-              {/* Attach ref to the container holding the button and menu */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 rounded-full p-1 hover:bg-white/5 transition-colors group"
-                >
-                  <div className="h-9 w-9 rounded-full bg-[var(--bg-surface)] flex items-center justify-center border border-white/10 group-hover:border-[var(--brand-primary)] transition-colors cursor-pointer">
-                    <User className="h-4 w-4 text-[var(--text-muted)]" />
-                  </div>
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--bg-surface)] backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in-up">
-                    <div className="p-2">
-                      <button
-                        onClick={handleProfileClick}
-                        className="w-full text-left px-4 py-2.5 text-sm text-[var(--text-main)] hover:bg-white/5 rounded-lg flex items-center gap-3 transition-colors cursor-pointer"
-                      >
-                        <User className="h-4 w-4 text-[var(--text-muted)]" />
-                        My Profile
-                      </button>
-                    </div>
-                    <div className="h-px bg-white/5 w-full"></div>
-                    <div className="p-2">
-                      <button
-                        onClick={handleLogoutClick}
-                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg flex items-center gap-3 transition-colors cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Search Bar */}
+            {/* Search Bar - Visible only when NOT in Profile mode */}
             <div className="p-3 border-b border-white/5">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />

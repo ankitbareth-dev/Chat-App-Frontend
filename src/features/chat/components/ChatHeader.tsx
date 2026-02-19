@@ -9,8 +9,9 @@ type ChatHeaderProps = {
 
 const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-10 h-[77px]">
+    <header className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-20 h-[77px] flex-shrink-0">
       <div className="flex items-center gap-3">
+        {/* Mobile Back Button */}
         <button
           onClick={onBack}
           className="md:hidden p-2 -ml-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
@@ -33,6 +34,7 @@ const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
         </div>
       </div>
 
+      {/* Right Actions */}
       <div className="flex items-center gap-1">
         <div className="relative group">
           <button className="p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] transition-colors cursor-not-allowed">

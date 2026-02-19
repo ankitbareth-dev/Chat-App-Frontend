@@ -64,26 +64,31 @@ const ChatMessages = ({
               className={`flex w-full ${isMine ? "justify-end" : "justify-start"} mb-2`}
             >
               <div
-                className={`relative max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${
+                className={`relative max-w-[280px] md:max-w-md px-3 py-2 rounded-2xl shadow-sm ${
                   isMine
                     ? "bg-[var(--brand-primary)] text-white rounded-br-none"
                     : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
                 }`}
               >
-                <p className="text-sm">{msg.content}</p>
-                <div className="flex items-center justify-end gap-1 mt-1">
-                  <span className="text-[10px] opacity-70">
-                    {new Date(msg.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  {isMine &&
-                    (isSending ? (
-                      <Clock className="h-3 w-3 opacity-70 animate-pulse" />
-                    ) : (
-                      <Check className="h-3 w-3 opacity-90" />
-                    ))}
+                {/* Flex container to align text and time at the bottom */}
+                <div className="flex items-end gap-2">
+                  <p className="text-sm break-words">{msg.content}</p>
+
+                  {/* Time and Status Container */}
+                  <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5">
+                    <span className="text-[9px] opacity-70 tabular-nums">
+                      {new Date(msg.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {isMine &&
+                      (isSending ? (
+                        <Clock className="h-3 w-3 opacity-70 animate-pulse" />
+                      ) : (
+                        <Check className="h-3 w-3 opacity-90" />
+                      ))}
+                  </div>
                 </div>
               </div>
             </div>

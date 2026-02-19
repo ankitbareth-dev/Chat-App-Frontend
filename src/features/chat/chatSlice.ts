@@ -15,6 +15,7 @@ export interface Message {
   senderId: string;
   receiverId: string;
   timestamp: string;
+  status?: "sending" | "sent";
 }
 
 interface ChatState {
@@ -165,10 +166,18 @@ const chatSlice = createSlice({
       state.messages.push(action.payload);
     },
     updateMessageStatus: (state, action) => {
-      const { tempId, confirmedMessage } = action.payload;
-      const index = state.messages.findIndex((msg) => msg.id === tempId);
+      const { content, senderId, confirmedMessage } = action.payload;
+      const index = state.messages.findIndex(
+        (msg) =>
+          msg.content === content &&
+          msg.senderId === senderId &&
+          msg.status === "sending",
+      );
       if (index !== -1) {
-        state.messages[index] = { ...confirmedMessage, status: "sent" };
+        state.messages[index] = {
+          ...confirmedMessage,
+          status: "sent",
+        };
       }
     },
   },

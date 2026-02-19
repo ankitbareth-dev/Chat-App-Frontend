@@ -69,8 +69,12 @@ const Sidebar = () => {
             {/* Header */}
             <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-accent)] flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
-                  <MessageSquare className="h-5 w-5 text-white" />
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
+                  <img
+                    src="/App-Logo.png"
+                    alt="ChatFlow Logo"
+                    className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
+                  />
                 </div>
                 <h1 className="text-lg font-bold text-white tracking-tight">
                   Chat<span className="text-[var(--brand-primary)]">Flow</span>

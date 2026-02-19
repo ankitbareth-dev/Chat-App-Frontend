@@ -5,31 +5,55 @@ import {
   UserPlus,
   Loader2,
   AlertCircle,
-  MessageSquare,
+  Search,
+  X,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { fetchChatList, selectChat, setActiveChatUser } from "./chatSlice";
+import {
+  fetchChatList,
+  selectChat,
+  setActiveChatUser,
+  searchUsers,
+  clearSearchResults,
+} from "./chatSlice";
 import LogoutModal from "../auth/LogoutModal";
-import AddFriendModal from "../chat/AddFriendModal";
-import ProfilePanel from "../profile/ProfilePanel"; // Import the new component
+import ProfilePanel from "../profile/ProfilePanel";
 import type { ChatUser } from "../../types/chat.types";
+import useDebounce from "../../hooks/useDebounce";
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
 
-  const { chatList, chatListLoading, chatListError, activeChatUser } =
-    useAppSelector(selectChat);
+  const {
+    chatList,
+    chatListLoading,
+    chatListError,
+    activeChatUser,
+    searchResults,
+    searchLoading,
+    searchError,
+  } = useAppSelector(selectChat);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [isAddFriendModalOpen, setIsAddFriendModalOpen] = useState(false);
-
-  // State to toggle between Chat List and Profile Panel
   const [showProfile, setShowProfile] = useState(false);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 500);
 
   useEffect(() => {
     dispatch(fetchChatList());
   }, [dispatch]);
+
+  // Handle Search Dispatch
+  useEffect(() => {
+    if (debouncedQuery && debouncedQuery.length >= 3) {
+      dispatch(searchUsers(debouncedQuery));
+    } else {
+      dispatch(clearSearchResults());
+    }
+  }, [debouncedQuery, dispatch]);
 
   const handleProfileClick = () => {
     setIsDropdownOpen(false);
@@ -41,13 +65,17 @@ const Sidebar = () => {
     setIsLogoutModalOpen(true);
   };
 
-  const handleAddFriendClick = () => {
-    setIsAddFriendModalOpen(true);
-  };
-
   const handleSelectUser = (user: ChatUser) => {
     dispatch(setActiveChatUser(user));
+    // Clear search state when selecting a user
+    setSearchQuery("");
+    dispatch(clearSearchResults());
     if (isDropdownOpen) setIsDropdownOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    dispatch(clearSearchResults());
   };
 
   return (
@@ -61,7 +89,6 @@ const Sidebar = () => {
         ${activeChatUser ? "-translate-x-full md:translate-x-0" : "translate-x-0"}
       `}
       >
-        {/* Conditionally Render Profile or Chat List */}
         {showProfile ? (
           <ProfilePanel onBack={() => setShowProfile(false)} />
         ) : (
@@ -117,102 +144,186 @@ const Sidebar = () => {
               </div>
             </div>
 
-            {/* Chat List */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
-              {chatListLoading && (
-                <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-                  <Loader2 className="h-8 w-8 animate-spin mb-3 text-[var(--brand-primary)]" />
-                  <span className="text-sm font-medium">Loading chats...</span>
-                </div>
-              )}
-
-              {chatListError && (
-                <div className="p-8 text-center">
-                  <div className="flex flex-col items-center gap-3 text-red-400 mb-4 bg-red-500/10 p-4 rounded-xl border border-red-500/20">
-                    <AlertCircle className="h-6 w-6" />
-                    <span className="text-sm font-medium">
-                      Connection Error
-                    </span>
-                  </div>
+            {/* Search Bar */}
+            <div className="p-3 border-b border-white/5">
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search users by phone..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[var(--bg-surface)]/50 border border-white/10 rounded-xl py-2.5 pl-9 pr-9 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
+                />
+                {searchQuery && (
                   <button
-                    onClick={() => dispatch(fetchChatList())}
-                    className="text-sm text-[var(--brand-primary)] hover:underline font-medium"
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 text-[var(--text-muted)] hover:text-white transition-colors"
                   >
-                    Try Again
+                    <X className="h-4 w-4" />
                   </button>
-                </div>
-              )}
-
-              {!chatListLoading && !chatListError && chatList.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-                  <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 ring-1 ring-white/10">
-                    <MessageSquare className="h-8 w-8 text-[var(--text-muted)]" />
-                  </div>
-                  <p className="text-base font-medium text-white mb-1">
-                    No Conversations
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Add a friend to start your first chat.
-                  </p>
-                </div>
-              )}
-
-              {!chatListLoading &&
-                chatList.map((user) => (
-                  <button
-                    key={user.id}
-                    onClick={() => handleSelectUser(user)}
-                    className={`w-full flex items-center gap-3 rounded-xl p-3 transition-all duration-200 group relative overflow-hidden ${
-                      activeChatUser?.id === user.id
-                        ? "bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 shadow-lg shadow-[var(--brand-primary)]/5"
-                        : "hover:bg-white/5 border border-transparent"
-                    }`}
-                  >
-                    {activeChatUser?.id === user.id && (
-                      <div className="absolute left-0 top-2 bottom-2 w-1 bg-[var(--brand-primary)] rounded-r-full" />
-                    )}
-
-                    <div className="relative">
-                      <img
-                        src={user.profilePicture}
-                        alt={user.name}
-                        className="h-12 w-12 rounded-full object-cover border border-white/10 group-hover:border-[var(--brand-primary)]/50 transition-colors"
-                      />
-                      <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-[var(--bg-deep)]"></div>
-                    </div>
-
-                    <div className="flex-1 text-left overflow-hidden">
-                      <div className="flex justify-between items-center mb-1">
-                        <h3
-                          className={`text-sm font-semibold truncate ${
-                            activeChatUser?.id === user.id
-                              ? "text-[var(--brand-primary)]"
-                              : "text-[var(--text-main)]"
-                          }`}
-                        >
-                          {user.name}
-                        </h3>
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          2m
-                        </span>
-                      </div>
-                      <p className="truncate text-xs text-[var(--text-muted)]">
-                        Tap to chat
-                      </p>
-                    </div>
-                  </button>
-                ))}
+                )}
+                {searchLoading && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--brand-primary)] animate-spin" />
+                )}
+              </div>
             </div>
 
-            {/* Footer Action */}
-            <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)]/50 backdrop-blur-xl">
-              <button
-                onClick={handleAddFriendClick}
-                className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-[var(--brand-primary)]/30 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] transition-all text-sm font-semibold group cursor-pointer"
-              >
-                <UserPlus className="h-4 w-4 " />
-                Add New Friend
-              </button>
+            {/* Chat List / Search Results Area */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+              {/* Search Query is Active */}
+              {searchQuery.length >= 3 ? (
+                <>
+                  {searchLoading && searchResults.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-10 text-[var(--text-muted)]">
+                      <Loader2 className="h-6 w-6 animate-spin mb-2 text-[var(--brand-primary)]" />
+                      <span className="text-xs">Searching...</span>
+                    </div>
+                  )}
+
+                  {searchError && (
+                    <div className="p-4 text-center">
+                      <div className="flex flex-col items-center gap-2 text-red-400 mb-4 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                        <AlertCircle className="h-5 w-5" />
+                        <span className="text-xs">{searchError}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!searchLoading &&
+                    searchResults.length === 0 &&
+                    !searchError && (
+                      <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                        <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-3 ring-1 ring-white/10">
+                          <Search className="h-5 w-5 text-[var(--text-muted)]" />
+                        </div>
+                        <p className="text-sm text-[var(--text-muted)]">
+                          No users found.
+                        </p>
+                      </div>
+                    )}
+
+                  {searchResults.map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => handleSelectUser(user)}
+                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <img
+                            src={user.profilePicture}
+                            alt={user.name}
+                            className="h-12 w-12 rounded-full object-cover border border-white/10"
+                          />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-sm font-semibold text-[var(--text-main)]">
+                            {user.name}
+                          </h3>
+                          <p className="text-xs text-[var(--text-muted)]">
+                            {user.phone}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-all">
+                        <UserPlus className="h-4 w-4" />
+                      </div>
+                    </button>
+                  ))}
+                </>
+              ) : (
+                // Default Chat List
+                <>
+                  {chatListLoading && (
+                    <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
+                      <Loader2 className="h-8 w-8 animate-spin mb-3 text-[var(--brand-primary)]" />
+                      <span className="text-sm font-medium">
+                        Loading chats...
+                      </span>
+                    </div>
+                  )}
+
+                  {chatListError && (
+                    <div className="p-8 text-center">
+                      <div className="flex flex-col items-center gap-3 text-red-400 mb-4 bg-red-500/10 p-4 rounded-xl border border-red-500/20">
+                        <AlertCircle className="h-6 w-6" />
+                        <span className="text-sm font-medium">
+                          Connection Error
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => dispatch(fetchChatList())}
+                        className="text-sm text-[var(--brand-primary)] hover:underline font-medium"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  )}
+
+                  {!chatListLoading &&
+                    !chatListError &&
+                    chatList.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+                        <div className="h-16 w-16 rounded-full bg-white/5 flex items-center justify-center mb-4 ring-1 ring-white/10">
+                          <UserPlus className="h-8 w-8 text-[var(--text-muted)]" />
+                        </div>
+                        <p className="text-base font-medium text-white mb-1">
+                          No Conversations
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                          Search for a user to start chatting.
+                        </p>
+                      </div>
+                    )}
+
+                  {!chatListLoading &&
+                    chatList.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => handleSelectUser(user)}
+                        className={`w-full flex items-center gap-3 rounded-xl p-3 transition-all duration-200 group relative overflow-hidden ${
+                          activeChatUser?.id === user.id
+                            ? "bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 shadow-lg shadow-[var(--brand-primary)]/5"
+                            : "hover:bg-white/5 border border-transparent"
+                        }`}
+                      >
+                        {activeChatUser?.id === user.id && (
+                          <div className="absolute left-0 top-2 bottom-2 w-1 bg-[var(--brand-primary)] rounded-r-full" />
+                        )}
+
+                        <div className="relative">
+                          <img
+                            src={user.profilePicture}
+                            alt={user.name}
+                            className="h-12 w-12 rounded-full object-cover border border-white/10 group-hover:border-[var(--brand-primary)]/50 transition-colors"
+                          />
+                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-[var(--bg-deep)]"></div>
+                        </div>
+
+                        <div className="flex-1 text-left overflow-hidden">
+                          <div className="flex justify-between items-center mb-1">
+                            <h3
+                              className={`text-sm font-semibold truncate ${
+                                activeChatUser?.id === user.id
+                                  ? "text-[var(--brand-primary)]"
+                                  : "text-[var(--text-main)]"
+                              }`}
+                            >
+                              {user.name}
+                            </h3>
+                            <span className="text-[10px] text-[var(--text-muted)]">
+                              2m
+                            </span>
+                          </div>
+                          <p className="truncate text-xs text-[var(--text-muted)]">
+                            Tap to chat
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                </>
+              )}
             </div>
           </>
         )}
@@ -221,12 +332,6 @@ const Sidebar = () => {
       <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
-      />
-
-      <AddFriendModal
-        isOpen={isAddFriendModalOpen}
-        onClose={() => setIsAddFriendModalOpen(false)}
-        onUserSelected={handleSelectUser}
       />
     </>
   );

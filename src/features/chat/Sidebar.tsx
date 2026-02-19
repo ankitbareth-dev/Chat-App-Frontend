@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   LogOut,
   User,
@@ -20,6 +20,7 @@ import LogoutModal from "../auth/LogoutModal";
 import ProfilePanel from "../profile/ProfilePanel";
 import type { ChatUser } from "../../types/chat.types";
 import useDebounce from "../../hooks/useDebounce";
+import useOnClickOutside from "../../hooks/useOnClickOutside"; // Import the hook
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
@@ -41,6 +42,16 @@ const Sidebar = () => {
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 500);
+
+  // Ref for the dropdown menu
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Hook to close dropdown when clicking outside
+  useOnClickOutside(dropdownRef, () => {
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+    }
+  });
 
   useEffect(() => {
     dispatch(fetchChatList());
@@ -67,7 +78,6 @@ const Sidebar = () => {
 
   const handleSelectUser = (user: ChatUser) => {
     dispatch(setActiveChatUser(user));
-    // Clear search state when selecting a user
     setSearchQuery("");
     dispatch(clearSearchResults());
     if (isDropdownOpen) setIsDropdownOpen(false);
@@ -108,7 +118,8 @@ const Sidebar = () => {
                 </h1>
               </div>
 
-              <div className="relative">
+              {/* Attach ref to the container holding the button and menu */}
+              <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="flex items-center gap-2 rounded-full p-1 hover:bg-white/5 transition-colors group"
@@ -171,7 +182,6 @@ const Sidebar = () => {
 
             {/* Chat List / Search Results Area */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
-              {/* Search Query is Active */}
               {searchQuery.length >= 3 ? (
                 <>
                   {searchLoading && searchResults.length === 0 && (
@@ -233,7 +243,6 @@ const Sidebar = () => {
                   ))}
                 </>
               ) : (
-                // Default Chat List
                 <>
                   {chatListLoading && (
                     <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">

@@ -1,5 +1,3 @@
-import { MessageSquare } from "lucide-react";
-
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
 
@@ -9,7 +7,11 @@ export const Footer = () => {
         <div className="flex flex-col items-center justify-center text-center gap-2">
           {/* Brand + Icon */}
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-[var(--brand-primary)]" />
+            <img
+              src="/App-Logo.png"
+              alt="ChatFlow Logo"
+              className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
+            />
             <span className="text-xl font-bold tracking-tight text-white">
               Chat<span className="text-[var(--brand-primary)]">Flow</span>
             </span>

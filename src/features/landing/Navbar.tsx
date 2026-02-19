@@ -48,7 +48,7 @@ export const Navbar = () => {
         {/* Logo section */}
         <div className="flex items-center gap-2">
           <img
-            src="/App-Logo.jpg"
+            src="/App-Logo.png"
             alt="ChatFlow Logo"
             className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
           />

@@ -206,7 +206,7 @@ const Sidebar = () => {
                 onClick={handleAddFriendClick}
                 className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-[var(--brand-primary)]/30 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hover:border-[var(--brand-primary)] transition-all text-sm font-semibold group cursor-pointer"
               >
-                <UserPlus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
+                <UserPlus className="h-4 w-4 " />
                 Add New Friend
               </button>
             </div>

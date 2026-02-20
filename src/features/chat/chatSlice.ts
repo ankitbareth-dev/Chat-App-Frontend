@@ -19,6 +19,7 @@ export interface Message {
   receiverId: string;
   timestamp: string;
   status?: "sending" | "sent";
+  seenAt?: string;
 }
 
 interface ChatState {
@@ -225,6 +226,17 @@ const chatSlice = createSlice({
         if (lastSeen) state.activeChatUser.lastSeen = lastSeen;
       }
     },
+    setMessagesSeen: (state, action) => {
+      const { by, timestamp, myId } = action.payload;
+
+      if (state.activeChatUser?.id === by) {
+        state.messages.forEach((msg) => {
+          if (msg.senderId === myId && !msg.seenAt) {
+            msg.seenAt = timestamp;
+          }
+        });
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -290,6 +302,7 @@ export const {
   updateMessageStatus,
   updateUserStatus,
   incrementUnreadCount,
+  setMessagesSeen,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

@@ -57,6 +57,7 @@ const ChatMessages = ({
         {messages.map((msg) => {
           const isMine = msg.senderId === currentUserId;
           const isSending = msg.status === "sending";
+          const isSeen = msg.seenAt;
 
           return (
             <div
@@ -85,6 +86,8 @@ const ChatMessages = ({
                     {isMine &&
                       (isSending ? (
                         <Clock className="h-3 w-3 opacity-70 animate-pulse" />
+                      ) : isSeen ? (
+                        <DoubleCheck className="h-3 w-3 opacity-90 text-blue-400" />
                       ) : (
                         <Check className="h-3 w-3 opacity-90" />
                       ))}
@@ -135,6 +138,22 @@ const Clock = ({ className }: { className?: string }) => (
   >
     <circle cx="12" cy="12" r="10"></circle>
     <polyline points="12 6 12 12 16 14"></polyline>
+  </svg>
+);
+
+const DoubleCheck = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18 6 7 17l-5-5" />
+    <path d="m22 10-7.5 7.5L13 16" />
   </svg>
 );
 

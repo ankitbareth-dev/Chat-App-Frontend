@@ -9,7 +9,7 @@ import PublicRoute from "./routes/PublicRoute";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { checkAuth } from "./features/auth/authSlice";
 import { selectAuth } from "./features/auth/authSlice";
-import { useEffect, useRef } from "react"; // Import useRef
+import { useEffect, useRef } from "react";
 import SplashScreen from "./components/SplashScreen";
 
 import { connectSocket, disconnectSocket } from "./app/socket";
@@ -18,6 +18,7 @@ import {
   incrementUnreadCount,
   selectChat,
   updateUserStatus,
+  setMessagesSeen,
 } from "./features/chat/chatSlice";
 
 function App() {
@@ -63,6 +64,10 @@ function App() {
       }
     });
 
+    socket.on("messages_seen", (data) => {
+      dispatch(setMessagesSeen(data));
+    });
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
 
@@ -71,6 +76,7 @@ function App() {
       socket.off("disconnect", onDisconnect);
       socket.off("user_status");
       socket.off("receive_message");
+      socket.off("messages_seen");
     };
   }, [isAuthenticated, dispatch]);
 

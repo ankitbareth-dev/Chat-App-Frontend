@@ -14,4 +14,6 @@ export interface ChatMessage {
   senderId: string;
   receiverId: string;
   timestamp: string;
+  seenAt?: string;
+  deliveredAt?: string;
 }

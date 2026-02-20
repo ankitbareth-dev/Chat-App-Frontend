@@ -7,7 +7,6 @@ export interface ChatUser {
   lastSeen?: string;
   unreadCount?: number;
 }
-
 export interface ChatMessage {
   id: string;
   content: string;
@@ -15,5 +14,11 @@ export interface ChatMessage {
   receiverId: string;
   timestamp: string;
   seenAt?: string;
-  deliveredAt?: string;
+  status?: "sending" | "sent";
+
+  sender?: {
+    id: string;
+    name: string;
+    profilePicture: string;
+  };
 }

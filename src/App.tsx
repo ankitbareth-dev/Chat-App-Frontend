@@ -15,7 +15,7 @@ import SplashScreen from "./components/SplashScreen";
 import { connectSocket, disconnectSocket } from "./app/socket";
 import { Toaster } from "sonner";
 import {
-  incrementUnreadCount,
+  handleIncomingMessage,
   selectChat,
   updateUserStatus,
   setMessagesSeen,
@@ -60,7 +60,7 @@ function App() {
       const isActiveChat = activeChatIdRef.current === newMessage.senderId;
 
       if (!isActiveChat) {
-        dispatch(incrementUnreadCount(newMessage.senderId));
+        dispatch(handleIncomingMessage(newMessage));
       }
     });
 

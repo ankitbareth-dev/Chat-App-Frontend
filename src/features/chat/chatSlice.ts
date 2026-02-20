@@ -175,18 +175,31 @@ const chatSlice = createSlice({
         }
       }
     },
-    incrementUnreadCount: (state, action) => {
-      const senderId = action.payload;
+    handleIncomingMessage: (state, action) => {
+      const message = action.payload;
+      const senderId = message.senderId;
+
       const userIndex = state.chatList.findIndex((u) => u.id === senderId);
 
       if (userIndex !== -1) {
-        const currentCount = state.chatList[userIndex].unreadCount || 0;
-        state.chatList[userIndex].unreadCount = currentCount + 1;
-
         const user = state.chatList.splice(userIndex, 1)[0];
+        user.unreadCount = (user.unreadCount || 0) + 1;
         state.chatList.unshift(user);
+      } else {
+        if (message.sender) {
+          const newUser: PublicUser = {
+            id: senderId,
+            name: message.sender.name,
+            profilePicture: message.sender.profilePicture,
+            phone: "",
+            isOnline: true,
+            unreadCount: 1,
+          };
+          state.chatList.unshift(newUser);
+        }
       }
     },
+
     addMessage: (state, action) => {
       state.messages.push(action.payload);
     },
@@ -309,7 +322,7 @@ export const {
   addMessage,
   updateMessageStatus,
   updateUserStatus,
-  incrementUnreadCount,
+  handleIncomingMessage,
   setMessagesSeen,
   addUserToChatList,
 } = chatSlice.actions;

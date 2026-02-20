@@ -23,7 +23,7 @@ const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
           alt={user.name}
           className="h-9 w-9 rounded-full object-cover border border-white/10"
         />
-        // Inside ChatHeader.tsx // ...
+
         <div>
           <h3 className="font-bold text-sm md:text-base text-[var(--text-main)]">
             {user.name}

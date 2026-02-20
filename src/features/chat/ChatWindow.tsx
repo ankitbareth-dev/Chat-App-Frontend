@@ -50,6 +50,7 @@ const ChatWindow = () => {
     }
   }, [activeChatUser, dispatch, isUserInChatList]);
 
+  // Socket Listeners
   useEffect(() => {
     const socket = getSocket();
     if (!socket || !activeChatUser) return;
@@ -89,6 +90,15 @@ const ChatWindow = () => {
       socket.off("user_stopped_typing", handleUserStoppedTyping);
     };
   }, [activeChatUser, dispatch]);
+
+  useEffect(() => {
+    if (activeChatUser && user) {
+      const socket = getSocket();
+      if (socket) {
+        socket.emit("mark_seen", { senderId: activeChatUser.id });
+      }
+    }
+  }, [activeChatUser, user]);
 
   // Handlers
   const handleBackClick = () => {

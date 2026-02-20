@@ -237,6 +237,14 @@ const chatSlice = createSlice({
         });
       }
     },
+    addUserToChatList: (state, action) => {
+      const user = action.payload;
+
+      const exists = state.chatList.some((u) => u.id === user.id);
+      if (!exists) {
+        state.chatList.unshift(user);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -303,6 +311,7 @@ export const {
   updateUserStatus,
   incrementUnreadCount,
   setMessagesSeen,
+  addUserToChatList,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

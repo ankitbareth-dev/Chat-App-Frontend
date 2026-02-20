@@ -15,6 +15,7 @@ import {
   setActiveChatUser,
   searchUsers,
   clearSearchResults,
+  addUserToChatList,
 } from "./chatSlice";
 import LogoutModal from "../auth/LogoutModal";
 import ProfilePanel from "../profile/ProfilePanel";
@@ -77,6 +78,10 @@ const Sidebar = () => {
   };
 
   const handleSelectUser = (user: ChatUser) => {
+    const userExists = chatList.some((u) => u.id === user.id);
+    if (!userExists) {
+      dispatch(addUserToChatList(user));
+    }
     dispatch(setActiveChatUser(user));
     setSearchQuery("");
     dispatch(clearSearchResults());
@@ -326,11 +331,11 @@ const Sidebar = () => {
                             >
                               {user.name}
                             </h3>
-                            {user.unreadCount && user.unreadCount > 0 && (
+                            {user.unreadCount && user.unreadCount > 0 ? (
                               <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[var(--brand-primary)] text-white text-[10px] font-bold shadow-md">
                                 {user.unreadCount}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                           <p className="truncate text-xs text-[var(--text-muted)]">
                             {user.unreadCount && user.unreadCount > 0 ? (

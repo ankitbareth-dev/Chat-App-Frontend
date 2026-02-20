@@ -5,6 +5,7 @@ export interface ChatUser {
   profilePicture: string;
   isOnline?: boolean;
   lastSeen?: string;
+  unreadCount?: number;
 }
 
 export interface ChatMessage {

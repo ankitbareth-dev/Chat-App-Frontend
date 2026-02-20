@@ -10,6 +10,7 @@ export interface PublicUser {
   profilePicture: string;
   isOnline?: boolean;
   lastSeen?: string;
+  unreadCount?: number;
 }
 export interface Message {
   id: string;
@@ -163,6 +164,27 @@ const chatSlice = createSlice({
       state.currentPage = 1;
       state.hasMore = true;
       state.historyError = null;
+
+      if (action.payload) {
+        const userIndex = state.chatList.findIndex(
+          (u) => u.id === action.payload.id,
+        );
+        if (userIndex !== -1) {
+          state.chatList[userIndex].unreadCount = 0;
+        }
+      }
+    },
+    incrementUnreadCount: (state, action) => {
+      const senderId = action.payload;
+      const userIndex = state.chatList.findIndex((u) => u.id === senderId);
+
+      if (userIndex !== -1) {
+        const currentCount = state.chatList[userIndex].unreadCount || 0;
+        state.chatList[userIndex].unreadCount = currentCount + 1;
+
+        const user = state.chatList.splice(userIndex, 1)[0];
+        state.chatList.unshift(user);
+      }
     },
     addMessage: (state, action) => {
       state.messages.push(action.payload);
@@ -267,6 +289,7 @@ export const {
   addMessage,
   updateMessageStatus,
   updateUserStatus,
+  incrementUnreadCount,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

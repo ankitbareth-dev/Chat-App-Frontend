@@ -326,12 +326,20 @@ const Sidebar = () => {
                             >
                               {user.name}
                             </h3>
-                            <span className="text-[10px] text-[var(--text-muted)]">
-                              2m
-                            </span>
+                            {user.unreadCount && user.unreadCount > 0 && (
+                              <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-[var(--brand-primary)] text-white text-[10px] font-bold shadow-md">
+                                {user.unreadCount}
+                              </span>
+                            )}
                           </div>
                           <p className="truncate text-xs text-[var(--text-muted)]">
-                            Tap to chat
+                            {user.unreadCount && user.unreadCount > 0 ? (
+                              <span className="text-[var(--brand-primary)] font-medium">
+                                New message
+                              </span>
+                            ) : (
+                              "Tap to chat"
+                            )}
                           </p>
                         </div>
                       </button>

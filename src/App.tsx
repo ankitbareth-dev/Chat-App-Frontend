@@ -9,16 +9,27 @@ import PublicRoute from "./routes/PublicRoute";
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { checkAuth } from "./features/auth/authSlice";
 import { selectAuth } from "./features/auth/authSlice";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react"; // Import useRef
 import SplashScreen from "./components/SplashScreen";
 
 import { connectSocket, disconnectSocket } from "./app/socket";
 import { Toaster } from "sonner";
-import { updateUserStatus } from "./features/chat/chatSlice";
+import {
+  incrementUnreadCount,
+  selectChat,
+  updateUserStatus,
+} from "./features/chat/chatSlice";
 
 function App() {
   const dispatch = useAppDispatch();
   const { initialLoading, isAuthenticated } = useAppSelector(selectAuth);
+  const { activeChatUser } = useAppSelector(selectChat);
+
+  const activeChatIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatUser?.id || null;
+  }, [activeChatUser]);
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -41,8 +52,15 @@ function App() {
     };
 
     socket.on("user_status", (data) => {
-      console.log("Status update received:", data);
       dispatch(updateUserStatus(data));
+    });
+
+    socket.on("receive_message", (newMessage) => {
+      const isActiveChat = activeChatIdRef.current === newMessage.senderId;
+
+      if (!isActiveChat) {
+        dispatch(incrementUnreadCount(newMessage.senderId));
+      }
     });
 
     socket.on("connect", onConnect);
@@ -52,6 +70,7 @@ function App() {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("user_status");
+      socket.off("receive_message");
     };
   }, [isAuthenticated, dispatch]);
 

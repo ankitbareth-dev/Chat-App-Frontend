@@ -14,6 +14,7 @@ import SplashScreen from "./components/SplashScreen";
 
 import { connectSocket, disconnectSocket } from "./app/socket";
 import { Toaster } from "sonner";
+import { updateUserStatus } from "./features/chat/chatSlice";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -39,14 +40,20 @@ function App() {
       console.log("Socket disconnected");
     };
 
+    socket.on("user_status", (data) => {
+      console.log("Status update received:", data);
+      dispatch(updateUserStatus(data));
+    });
+
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
+      socket.off("user_status");
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, dispatch]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {

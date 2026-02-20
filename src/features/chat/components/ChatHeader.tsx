@@ -18,18 +18,24 @@ const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-
         <img
           src={user.profilePicture}
           alt={user.name}
           className="h-9 w-9 rounded-full object-cover border border-white/10"
         />
+        // Inside ChatHeader.tsx // ...
         <div>
           <h3 className="font-bold text-sm md:text-base text-[var(--text-main)]">
             {user.name}
           </h3>
           <p className="text-[10px] md:text-xs text-[var(--text-muted)]">
-            {user.phone}
+            {user.isOnline ? (
+              <span className="text-green-400">Online</span>
+            ) : user.lastSeen ? (
+              `Last seen ${new Date(user.lastSeen).toLocaleDateString()}`
+            ) : (
+              user.phone
+            )}
           </p>
         </div>
       </div>

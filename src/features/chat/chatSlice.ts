@@ -8,6 +8,8 @@ export interface PublicUser {
   name: string;
   phone: string;
   profilePicture: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 export interface Message {
   id: string;
@@ -180,6 +182,27 @@ const chatSlice = createSlice({
         };
       }
     },
+
+    updateUserStatus: (state, action) => {
+      const { userId, isOnline, lastSeen } = action.payload;
+
+      const userInList = state.chatList.find((u) => u.id === userId);
+      if (userInList) {
+        userInList.isOnline = isOnline;
+        if (lastSeen) userInList.lastSeen = lastSeen;
+      }
+
+      const userInSearch = state.searchResults.find((u) => u.id === userId);
+      if (userInSearch) {
+        userInSearch.isOnline = isOnline;
+        if (lastSeen) userInSearch.lastSeen = lastSeen;
+      }
+
+      if (state.activeChatUser && state.activeChatUser.id === userId) {
+        state.activeChatUser.isOnline = isOnline;
+        if (lastSeen) state.activeChatUser.lastSeen = lastSeen;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -243,6 +266,7 @@ export const {
   setActiveChatUser,
   addMessage,
   updateMessageStatus,
+  updateUserStatus,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

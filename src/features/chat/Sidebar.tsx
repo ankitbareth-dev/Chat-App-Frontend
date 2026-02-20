@@ -306,9 +306,13 @@ const Sidebar = () => {
                           <img
                             src={user.profilePicture}
                             alt={user.name}
-                            className="h-12 w-12 rounded-full object-cover border border-white/10 group-hover:border-[var(--brand-primary)]/50 transition-colors"
+                            className="h-12 w-12 rounded-full object-cover border border-white/10"
                           />
-                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-[var(--bg-deep)]"></div>
+                          <div
+                            className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[var(--bg-deep)] ${
+                              user.isOnline ? "bg-green-500" : "bg-gray-500"
+                            }`}
+                          ></div>
                         </div>
 
                         <div className="flex-1 text-left overflow-hidden">

@@ -3,6 +3,8 @@ export interface ChatUser {
   name: string;
   phone: string;
   profilePicture: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 export interface ChatMessage {

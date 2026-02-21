@@ -22,15 +22,21 @@ import {
 } from "./features/chat/chatSlice";
 
 function App() {
+  const { user } = useAppSelector(selectAuth);
   const dispatch = useAppDispatch();
   const { initialLoading, isAuthenticated } = useAppSelector(selectAuth);
   const { activeChatUser } = useAppSelector(selectChat);
 
   const activeChatIdRef = useRef<string | null>(null);
+  const userIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     activeChatIdRef.current = activeChatUser?.id || null;
   }, [activeChatUser]);
+
+  useEffect(() => {
+    userIdRef.current = user?.id || null;
+  }, [user]);
 
   useEffect(() => {
     dispatch(checkAuth());
@@ -57,7 +63,7 @@ function App() {
     });
 
     socket.on("messages_seen", (data) => {
-      dispatch(setMessagesSeen(data));
+      dispatch(setMessagesSeen({ ...data, myId: userIdRef.current }));
     });
 
     return () => {

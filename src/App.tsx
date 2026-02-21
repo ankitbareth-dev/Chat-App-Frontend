@@ -44,14 +44,6 @@ function App() {
 
     const socket = connectSocket();
 
-    const onConnect = () => {
-      console.log("Socket connected:", socket.id);
-    };
-
-    const onDisconnect = () => {
-      console.log("Socket disconnected");
-    };
-
     socket.on("user_status", (data) => {
       dispatch(updateUserStatus(data));
     });
@@ -68,12 +60,7 @@ function App() {
       dispatch(setMessagesSeen(data));
     });
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
       socket.off("user_status");
       socket.off("receive_message");
       socket.off("messages_seen");

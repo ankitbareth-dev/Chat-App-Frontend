@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { createAppAsyncThunk } from "../../app/withTypes";
 import { ENV } from "../../app/env";
+import { logoutUser } from "../auth/authSlice";
 
 export interface PublicUser {
   id: string;
@@ -354,6 +355,10 @@ const chatSlice = createSlice({
         state.chatList = [];
         state.chatListError = action.payload ?? "Failed to load chats";
       });
+
+    builder.addCase(logoutUser.fulfilled, () => {
+      return initialState;
+    });
   },
 });
 

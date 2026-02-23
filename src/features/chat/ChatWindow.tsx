@@ -26,7 +26,7 @@ type DisplayMessage = ChatMessage & {
 
 const ChatWindow = () => {
   const dispatch = useAppDispatch();
-  const { activeChatUser, historyError, isLoadingHistory, chatList } =
+  const { activeChatUser, isLoadingHistory, chatList } =
     useAppSelector(selectChat);
   const messages = useAppSelector(selectActiveChatMessages);
   const { currentPage, hasMore } = useAppSelector(selectActiveChatPagination);

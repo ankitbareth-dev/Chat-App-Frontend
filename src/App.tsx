@@ -21,6 +21,8 @@ import {
   setMessagesSeen,
 } from "./features/chat/chatSlice";
 
+import { persistor } from "./app/store";
+
 function App() {
   const { user } = useAppSelector(selectAuth);
   const dispatch = useAppDispatch();
@@ -45,6 +47,7 @@ function App() {
   useEffect(() => {
     if (!isAuthenticated) {
       disconnectSocket();
+      persistor.purge();
       return;
     }
 

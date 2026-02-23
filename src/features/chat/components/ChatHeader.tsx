@@ -15,7 +15,7 @@ const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
         {/* Mobile Back Button */}
         <button
           onClick={onBack}
-          className="md:hidden p-2 -ml-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
+          className="p-2 -ml-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>

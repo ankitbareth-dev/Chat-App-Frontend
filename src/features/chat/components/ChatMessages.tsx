@@ -35,7 +35,7 @@ const ChatMessages = ({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col-reverse custom-scrollbar [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+    <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6 flex flex-col-reverse custom-scrollbar [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
       <div className="flex flex-col justify-end min-h-full">
         {hasMore && messages.length >= 20 && (
           <div className="flex justify-center py-2 mb-4">

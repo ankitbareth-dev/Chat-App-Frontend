@@ -158,7 +158,7 @@ const ChatWindow = () => {
 
   if (!activeChatUser) {
     return (
-      <main className="flex-1 h-full bg-[var(--bg-deep)] flex flex-col items-center justify-center p-6 text-center">
+      <main className="flex-1 h-full bg-[var(--bg-deep)] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
         <div className="h-24 w-24 rounded-full bg-white/5 flex items-center justify-center mb-6 ring-1 ring-white/10">
           <MessageCircle className="h-10 w-10 text-[var(--text-muted)]" />
         </div>

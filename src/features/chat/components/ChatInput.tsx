@@ -8,7 +8,7 @@ type ChatInputProps = {
 
 const ChatInput = ({ value, onChange, onSend }: ChatInputProps) => {
   return (
-    <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)] h-[78px] flex items-center">
+    <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)] h-[78px] flex items-center flex-shrink-0">
       <div className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl p-2 w-full">
         <input
           type="text"

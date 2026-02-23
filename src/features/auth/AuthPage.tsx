@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Loader2,
   UserPlus,
@@ -10,6 +10,7 @@ import {
   Shield,
   Zap,
   User,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -176,7 +177,12 @@ const AuthPage = () => {
       {/* Right Side (Form) */}
       <div className="min-h-screen flex flex-col items-center justify-center p-8 relative lg:min-h-0 lg:flex-1">
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[var(--brand-accent)]/5 rounded-full blur-[80px] pointer-events-none" />
-
+        <Link
+          to="/"
+          className="absolute top-8 left-8 z-20 p-2 rounded-full hover:bg-white/5 text-[var(--text-muted)] hover:text-white transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
         <div className="w-full max-w-md z-10 animate-fade-in-up">
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-white mb-2">

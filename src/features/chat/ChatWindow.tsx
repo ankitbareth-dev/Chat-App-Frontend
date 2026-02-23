@@ -8,6 +8,8 @@ import {
   addMessage,
   updateMessageStatus,
   setActiveChatUser,
+  selectActiveChatMessages,
+  selectActiveChatPagination,
 } from "./chatSlice";
 import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
@@ -24,14 +26,10 @@ type DisplayMessage = ChatMessage & {
 
 const ChatWindow = () => {
   const dispatch = useAppDispatch();
-  const {
-    activeChatUser,
-    messages,
-    isLoadingHistory,
-    hasMore,
-    currentPage,
-    chatList,
-  } = useAppSelector(selectChat);
+  const { activeChatUser, historyError, isLoadingHistory, chatList } =
+    useAppSelector(selectChat);
+  const messages = useAppSelector(selectActiveChatMessages);
+  const { currentPage, hasMore } = useAppSelector(selectActiveChatPagination);
   const { user } = useAppSelector(selectAuth);
 
   const [inputMessage, setInputMessage] = useState("");

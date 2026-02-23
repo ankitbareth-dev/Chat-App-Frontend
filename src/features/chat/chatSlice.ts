@@ -358,6 +358,19 @@ const chatSlice = createSlice({
 });
 
 export const selectChat = (state: RootState) => state.chat;
+
+export const selectActiveChatMessages = (state: RootState) => {
+  const { activeChatUser, messages } = state.chat;
+  if (!activeChatUser) return [];
+  return messages[activeChatUser.id] || [];
+};
+
+export const selectActiveChatPagination = (state: RootState) => {
+  const { activeChatUser, pagination } = state.chat;
+  if (!activeChatUser) return { currentPage: 1, hasMore: true };
+  return pagination[activeChatUser.id] || { currentPage: 1, hasMore: true };
+};
+
 export const {
   clearSearchResults,
   setActiveChatUser,

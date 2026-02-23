@@ -218,15 +218,16 @@ const chatSlice = createSlice({
 
     addMessage: (state, action) => {
       const msg = action.payload;
-      const receiverId = msg.receiverId;
 
-      // Initialize array if it doesn't exist
-      if (!state.messages[receiverId]) {
-        state.messages[receiverId] = [];
+      const chatId = state.activeChatUser?.id;
+
+      if (!chatId) return;
+
+      if (!state.messages[chatId]) {
+        state.messages[chatId] = [];
       }
-      state.messages[receiverId].push(msg);
+      state.messages[chatId].push(msg);
     },
-
     updateMessageStatus: (state, action) => {
       const { content, senderId, confirmedMessage } = action.payload;
       const receiverId = confirmedMessage.receiverId;

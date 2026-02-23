@@ -58,6 +58,7 @@ const ChatWindow = () => {
     const handleReceiveMessage = (newMessage: ChatMessage) => {
       if (newMessage.senderId === activeChatUser.id) {
         dispatch(addMessage(newMessage));
+        socket.emit("mark_seen", { senderId: activeChatUser.id });
       }
     };
 

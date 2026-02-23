@@ -47,6 +47,13 @@ const AuthPage = () => {
   }, [error, dispatch]);
 
   const handleToggle = () => {
+    if (loading) {
+      toast.error(
+        `Please wait, ${isLogin ? "Login" : "Signup"} is in process.`,
+      );
+      return;
+    }
+
     setIsLogin(!isLogin);
     setFormData({ name: "", email: "", phone: "", password: "" });
     dispatch(resetError());
@@ -186,22 +193,24 @@ const AuthPage = () => {
             <button
               type="button"
               onClick={handleToggle}
+              disabled={loading}
               className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
                 isLogin
                   ? "text-white"
                   : "text-[var(--text-muted)] hover:text-white"
-              }`}
+              } ${loading ? "cursor-not-allowed" : ""}`}
             >
               Login
             </button>
             <button
               type="button"
               onClick={handleToggle}
+              disabled={loading}
               className={`flex-1 relative z-10 py-2 text-sm font-medium transition-colors duration-300 ${
                 !isLogin
                   ? "text-white"
                   : "text-[var(--text-muted)] hover:text-white"
-              }`}
+              } ${loading ? "cursor-not-allowed" : ""}`}
             >
               Sign Up
             </button>

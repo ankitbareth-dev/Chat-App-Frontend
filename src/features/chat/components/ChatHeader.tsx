@@ -1,5 +1,6 @@
 import { ArrowLeft, Phone, Video, User } from "lucide-react";
 import type { ChatUser } from "../../../types/chat.types";
+import { formatLastSeen } from "../../../utils/formatLastSeen";
 
 type ChatHeaderProps = {
   user: ChatUser;
@@ -9,7 +10,7 @@ type ChatHeaderProps = {
 
 const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-20 h-[77px] flex-shrink-0">
+    <header className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-20 h-[69px] flex-shrink-0">
       <div className="flex items-center gap-3">
         {/* Mobile Back Button */}
         <button
@@ -32,7 +33,7 @@ const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
             {user.isOnline ? (
               <span className="text-green-400">Online</span>
             ) : user.lastSeen ? (
-              `Last seen ${new Date(user.lastSeen).toLocaleDateString()}`
+              `Last seen ${formatLastSeen(user.lastSeen)}`
             ) : (
               user.phone
             )}

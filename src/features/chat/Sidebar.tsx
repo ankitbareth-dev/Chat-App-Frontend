@@ -105,7 +105,7 @@ const Sidebar = () => {
       `}
       >
         {/* Header - Always Visible */}
-        <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
+        <div className="p-3 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
               <img

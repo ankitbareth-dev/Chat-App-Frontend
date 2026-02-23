@@ -156,12 +156,11 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* Content Area - Conditionally renders Search + List OR Profile Panel */}
         {showProfile ? (
           <ProfilePanel onBack={() => setShowProfile(false)} />
         ) : (
           <>
-            {/* Search Bar - Visible only when NOT in Profile mode */}
+            {/* Search Bar */}
             <div className="p-3 border-b border-white/5">
               <div className="relative group">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--brand-primary)] transition-colors" />
@@ -172,6 +171,7 @@ const Sidebar = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[var(--bg-surface)]/50 border border-white/10 rounded-xl py-2.5 pl-9 pr-9 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--brand-primary)] transition-colors"
                 />
+
                 {searchQuery && (
                   <button
                     onClick={handleClearSearch}
@@ -180,75 +180,85 @@ const Sidebar = () => {
                     <X className="h-4 w-4" />
                   </button>
                 )}
-                {searchLoading && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--brand-primary)] animate-spin" />
-                )}
               </div>
             </div>
 
-            {/* Chat List / Search Results Area */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
-              {searchQuery.length >= 3 ? (
-                <>
-                  {searchLoading && searchResults.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-10 text-[var(--text-muted)]">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2 text-[var(--brand-primary)]" />
-                      <span className="text-xs">Searching...</span>
+              {/* --- Logic for Search or Chat List --- */}
+              {searchQuery.length > 0 ? (
+                searchQuery.length < 3 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                    <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-3 ring-1 ring-white/10">
+                      <Search className="h-5 w-5 text-[var(--text-muted)]" />
                     </div>
-                  )}
-
-                  {searchError && (
-                    <div className="p-4 text-center">
-                      <div className="flex flex-col items-center gap-2 text-red-400 mb-4 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-                        <AlertCircle className="h-5 w-5" />
-                        <span className="text-xs">{searchError}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {!searchLoading &&
-                    searchResults.length === 0 &&
-                    !searchError && (
-                      <div className="flex flex-col items-center justify-center py-10 text-center px-4">
-                        <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-3 ring-1 ring-white/10">
-                          <Search className="h-5 w-5 text-[var(--text-muted)]" />
-                        </div>
-                        <p className="text-sm text-[var(--text-muted)]">
-                          No users found.
-                        </p>
+                    <p className="text-sm text-[var(--text-muted)]">
+                      Please enter at least 3 digits to search.
+                    </p>
+                  </div>
+                ) : (
+                  // Case: Valid Search Query (>= 3)
+                  <>
+                    {searchLoading && (
+                      <div className="flex flex-col items-center justify-center py-10 text-[var(--text-muted)]">
+                        <Loader2 className="h-6 w-6 animate-spin mb-2 text-[var(--brand-primary)]" />
+                        <span className="text-xs">Searching...</span>
                       </div>
                     )}
 
-                  {searchResults.map((user) => (
-                    <button
-                      key={user.id}
-                      onClick={() => handleSelectUser(user)}
-                      className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <img
-                            src={user.profilePicture}
-                            alt={user.name}
-                            className="h-12 w-12 rounded-full object-cover border border-white/10"
-                          />
+                    {searchError && (
+                      <div className="p-4 text-center">
+                        <div className="flex flex-col items-center gap-2 text-red-400 mb-4 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                          <AlertCircle className="h-5 w-5" />
+                          <span className="text-xs">{searchError}</span>
                         </div>
-                        <div className="text-left">
-                          <h3 className="text-sm font-semibold text-[var(--text-main)]">
-                            {user.name}
-                          </h3>
-                          <p className="text-xs text-[var(--text-muted)]">
-                            {user.phone}
+                      </div>
+                    )}
+
+                    {!searchLoading &&
+                      searchResults.length === 0 &&
+                      !searchError && (
+                        <div className="flex flex-col items-center justify-center py-10 text-center px-4">
+                          <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-3 ring-1 ring-white/10">
+                            <Search className="h-5 w-5 text-[var(--text-muted)]" />
+                          </div>
+                          <p className="text-sm text-[var(--text-muted)]">
+                            No users found.
                           </p>
                         </div>
-                      </div>
-                      <div className="p-2 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-all">
-                        <UserPlus className="h-4 w-4" />
-                      </div>
-                    </button>
-                  ))}
-                </>
+                      )}
+
+                    {searchResults.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => handleSelectUser(user)}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <img
+                              src={user.profilePicture}
+                              alt={user.name}
+                              className="h-12 w-12 rounded-full object-cover border border-white/10"
+                            />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="text-sm font-semibold text-[var(--text-main)]">
+                              {user.name}
+                            </h3>
+                            <p className="text-xs text-[var(--text-muted)]">
+                              {user.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] group-hover:bg-[var(--brand-primary)] group-hover:text-white transition-all">
+                          <UserPlus className="h-4 w-4" />
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                )
               ) : (
+                // --- CHAT LIST MODE ---
                 <>
                   {chatListLoading && (
                     <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">

@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 
 const ChatLayout = () => {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-deep)] font-sans relative">
+    <div className="flex h-dvh w-full overflow-hidden bg-[var(--bg-deep)] font-sans relative">
       <Sidebar />
       <ChatWindow />
     </div>

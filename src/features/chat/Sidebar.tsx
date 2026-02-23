@@ -105,13 +105,13 @@ const Sidebar = () => {
       `}
       >
         {/* Header - Always Visible */}
-        <div className="p-3 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
+        <div className="h-[70px] p-3 flex items-center justify-between border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20 overflow-hidden">
               <img
                 src="/App-Logo.png"
                 alt="ChatFlow Logo"
-                className="w-[55px] h-[55px] object-contain rounded-md flex-shrink-0"
+                className="h-10 w-10 object-contain flex-shrink-0"
               />
             </div>
             <h1 className="text-lg font-bold text-white tracking-tight">

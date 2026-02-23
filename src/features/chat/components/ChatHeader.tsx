@@ -10,7 +10,7 @@ type ChatHeaderProps = {
 
 const ChatHeader = ({ user, onBack, onProfileClick }: ChatHeaderProps) => {
   return (
-    <header className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md sticky top-0 z-20 h-[69px] flex-shrink-0">
+    <header className="flex items-center justify-between px-4 py-0 border-b border-white/5 bg-[var(--bg-deep)]/80 backdrop-blur-md  z-20 h-[70px] flex-shrink-0">
       <div className="flex items-center gap-3">
         {/* Mobile Back Button */}
         <button

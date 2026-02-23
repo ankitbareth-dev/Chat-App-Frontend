@@ -8,6 +8,7 @@ import type {
   SignupData,
   AuthApiSuccessResponse,
 } from "../../types/auth.types";
+import { updateUserProfile } from "../profile/profileSlice";
 
 interface AuthState {
   user: User | null;
@@ -198,6 +199,10 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       });
+
+    builder.addCase(updateUserProfile.fulfilled, (state, action) => {
+      state.user = action.payload;
+    });
   },
 });
 

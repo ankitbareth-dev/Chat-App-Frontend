@@ -22,6 +22,11 @@ export interface Message {
   seenAt?: string;
 }
 
+type PaginationState = {
+  currentPage: number;
+  hasMore: boolean;
+};
+
 interface ChatState {
   searchResults: PublicUser[];
   searchLoading: boolean;
@@ -31,11 +36,12 @@ interface ChatState {
   chatListError: string | null;
   activeChatUser: PublicUser | null;
 
-  messages: Message[];
+  messages: Record<string, Message[]>;
+
   isLoadingHistory: boolean;
   historyError: string | null;
-  currentPage: number;
-  hasMore: boolean;
+
+  pagination: Record<string, PaginationState>;
 }
 
 const initialState: ChatState = {
@@ -49,15 +55,19 @@ const initialState: ChatState = {
 
   activeChatUser: null,
 
-  messages: [],
+  messages: {},
   isLoadingHistory: false,
   historyError: null,
-  currentPage: 1,
-  hasMore: true,
+  pagination: {},
 };
 
 export const fetchChatHistory = createAppAsyncThunk<
-  { messages: Message[]; currentPage: number; hasMore: boolean },
+  {
+    messages: Message[];
+    currentPage: number;
+    hasMore: boolean;
+    receiverId: string;
+  },
   { receiverId: string; page: number },
   { rejectValue: string }
 >(
@@ -86,6 +96,7 @@ export const fetchChatHistory = createAppAsyncThunk<
         messages: data.data.messages,
         currentPage: page,
         hasMore,
+        receiverId,
       };
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -161,9 +172,7 @@ const chatSlice = createSlice({
     },
     setActiveChatUser: (state, action) => {
       state.activeChatUser = action.payload;
-      state.messages = [];
-      state.currentPage = 1;
-      state.hasMore = true;
+
       state.historyError = null;
 
       if (action.payload) {
@@ -198,24 +207,44 @@ const chatSlice = createSlice({
           state.chatList.unshift(newUser);
         }
       }
+
+      // NEW: Add message to the specific user's list in the map
+      if (!state.messages[senderId]) {
+        state.messages[senderId] = [];
+      }
+      state.messages[senderId].push(message);
     },
 
     addMessage: (state, action) => {
-      state.messages.push(action.payload);
+      const msg = action.payload;
+      const receiverId = msg.receiverId;
+
+      // Initialize array if it doesn't exist
+      if (!state.messages[receiverId]) {
+        state.messages[receiverId] = [];
+      }
+      state.messages[receiverId].push(msg);
     },
+
     updateMessageStatus: (state, action) => {
       const { content, senderId, confirmedMessage } = action.payload;
-      const index = state.messages.findIndex(
-        (msg) =>
-          msg.content === content &&
-          msg.senderId === senderId &&
-          msg.status === "sending",
-      );
-      if (index !== -1) {
-        state.messages[index] = {
-          ...confirmedMessage,
-          status: "sent",
-        };
+      const receiverId = confirmedMessage.receiverId;
+
+      // Find message in the specific user's list
+      const userMessages = state.messages[receiverId];
+      if (userMessages) {
+        const index = userMessages.findIndex(
+          (msg) =>
+            msg.content === content &&
+            msg.senderId === senderId &&
+            msg.status === "sending",
+        );
+        if (index !== -1) {
+          userMessages[index] = {
+            ...confirmedMessage,
+            status: "sent",
+          };
+        }
       }
     },
 
@@ -242,8 +271,9 @@ const chatSlice = createSlice({
     setMessagesSeen: (state, action) => {
       const { by, timestamp, myId } = action.payload;
 
-      if (state.activeChatUser?.id === by) {
-        state.messages.forEach((msg) => {
+      const userMessages = state.messages[by];
+      if (userMessages) {
+        userMessages.forEach((msg) => {
           if (msg.senderId === myId && !msg.seenAt) {
             msg.seenAt = timestamp;
           }
@@ -267,16 +297,28 @@ const chatSlice = createSlice({
       })
       .addCase(fetchChatHistory.fulfilled, (state, action) => {
         state.isLoadingHistory = false;
-        const { messages, currentPage, hasMore } = action.payload;
+        const { messages, currentPage, hasMore, receiverId } = action.payload;
 
-        if (currentPage === 1) {
-          state.messages = messages.reverse();
-        } else {
-          state.messages = [...messages.reverse(), ...state.messages];
+        if (!state.messages[receiverId]) {
+          state.messages[receiverId] = [];
         }
 
-        state.currentPage = currentPage;
-        state.hasMore = hasMore;
+        if (currentPage === 1) {
+          // Replace for fresh load
+          state.messages[receiverId] = messages.reverse();
+        } else {
+          // Prepend for pagination
+          state.messages[receiverId] = [
+            ...messages.reverse(),
+            ...state.messages[receiverId],
+          ];
+        }
+
+        // Update pagination map
+        state.pagination[receiverId] = {
+          currentPage,
+          hasMore,
+        };
       })
       .addCase(fetchChatHistory.rejected, (state, action) => {
         state.isLoadingHistory = false;

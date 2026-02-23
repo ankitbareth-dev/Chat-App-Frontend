@@ -15,23 +15,30 @@ import authReducer from "../features/auth/authSlice";
 import chatReducer from "../features/chat/chatSlice";
 import profileReducer from "../features/profile/profileSlice";
 
-const persistConfig = {
-  key: "root",
-  version: 1,
+const chatPersistConfig = {
+  key: "chat",
   storage,
-  whitelist: ["chat"],
+  blacklist: [
+    "searchResults",
+    "searchLoading",
+    "searchError",
+    "chatListLoading",
+    "chatListError",
+    "activeChatUser",
+    "isLoadingHistory",
+    "historyError",
+    "isRemoteTyping",
+  ],
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
-  chat: chatReducer,
+  chat: persistReducer(chatPersistConfig, chatReducer),
   profile: profileReducer,
 });
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

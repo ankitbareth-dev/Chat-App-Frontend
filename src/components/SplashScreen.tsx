@@ -1,21 +1,36 @@
 const SplashScreen = () => {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--bg-deep)] transition-opacity duration-500">
-      <div className="relative flex items-center justify-center">
-        <img
-          src="/App-Logo.png"
-          alt="App Logo"
-          className="relative z-10 h-32 w-32 object-contain animate-float rounded-2xl"
-          style={{ filter: "drop-shadow(0 0 10px rgba(99,102,241,0.3))" }}
-        />
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--bg-deep)] overflow-hidden">
+      {/* Subtle Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-[var(--brand-primary)]/5 to-transparent" />
 
-        <div className="absolute inset-0 h-32 w-32 rounded-full border border-[var(--brand-primary)] border-t-transparent animate-spin opacity-30"></div>
-        <div className="absolute inset-[-10px] h-40 w-40 rounded-full bg-[var(--brand-primary)] opacity-5 blur-xl animate-glow"></div>
+      {/* Atmospheric Glow */}
+      <div className="absolute h-72 w-72 bg-[var(--brand-primary)] opacity-10 blur-[100px] rounded-full" />
+
+      <div className="relative flex flex-col items-center gap-8 z-10">
+        {/* Logo Container with Spinner */}
+        <div className="relative h-28 w-28 flex items-center justify-center">
+          {/* Sleek Spinner Ring */}
+          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--brand-primary)] border-r-[var(--brand-primary)] animate-spin duration-1000" />
+
+          {/* Logo Image */}
+          <img
+            src="/App-Logo.png"
+            alt="ChatFlow Logo"
+            className="h-20 w-20 object-contain rounded-2xl shadow-2xl shadow-[var(--brand-primary)]/30 transition-transform duration-500 hover:scale-105"
+          />
+        </div>
+
+        {/* Branding */}
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Chat<span className="text-[var(--brand-primary)]">Flow</span>
+          </h1>
+          <p className="text-[var(--text-muted)] text-sm font-medium tracking-wider  animate-pulse">
+            Loading Chats...
+          </p>
+        </div>
       </div>
-
-      <p className="mt-8 text-[var(--text-muted)] text-sm animate-pulse font-medium tracking-wide">
-        Initializing experience...
-      </p>
     </div>
   );
 };

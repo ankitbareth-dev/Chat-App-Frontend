@@ -44,12 +44,6 @@ const ChatWindow = () => {
     : false;
 
   useEffect(() => {
-    if (activeChatUser) {
-      window.history.pushState({ chatOpen: true }, "");
-    }
-  }, [activeChatUser]);
-
-  useEffect(() => {
     if (activeChatUser && isUserInChatList) {
       dispatch(fetchChatHistory({ receiverId: activeChatUser.id, page: 1 }));
     }

@@ -101,12 +101,14 @@ const ChatWindow = () => {
   }, [activeChatUser, user]);
 
   const handleProfileClose = () => setShowProfile(false);
-  useHistoryStack(showProfile, handleProfileClose);
+  useHistoryStack(showProfile, handleProfileClose, "chat-profile");
 
   const isChatOpen = !!activeChatUser && !showProfile;
 
   const handleChatClose = () => dispatch(setActiveChatUser(null));
   useHistoryStack(isChatOpen, handleChatClose);
+
+  useHistoryStack(isChatOpen, handleChatClose, "chat-window");
 
   const handleBackClick = () => {
     window.history.back();

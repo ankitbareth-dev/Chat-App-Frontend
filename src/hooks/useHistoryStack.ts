@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 
-export const useHistoryStack = (isOpen: boolean, onClose: () => void) => {
+export const useHistoryStack = (
+  isOpen: boolean,
+  onClose: () => void,
+  id: string = "default",
+) => {
   const onCloseRef = useRef(onClose);
 
   useEffect(() => {
@@ -9,9 +13,11 @@ export const useHistoryStack = (isOpen: boolean, onClose: () => void) => {
 
   useEffect(() => {
     if (isOpen) {
-      window.history.pushState({ open: true }, "");
+      if (window.history.state?.id !== id) {
+        window.history.pushState({ open: true, id }, "");
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, id]);
 
   useEffect(() => {
     const handlePopState = () => {

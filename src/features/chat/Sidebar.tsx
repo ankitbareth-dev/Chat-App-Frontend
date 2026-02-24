@@ -50,7 +50,7 @@ const Sidebar = () => {
 
   const handleProfileClose = () => setShowProfile(false);
 
-  useHistoryStack(showProfile, handleProfileClose);
+  useHistoryStack(showProfile, handleProfileClose, "sidebar-profile");
 
   // Hook to close dropdown when clicking outside
   useOnClickOutside(dropdownRef, () => {

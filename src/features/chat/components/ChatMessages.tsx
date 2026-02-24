@@ -99,7 +99,7 @@ const ChatMessages = ({
                       (isSending ? (
                         <Clock className="h-3 w-3 opacity-70 animate-pulse" />
                       ) : isSeen ? (
-                        <DoubleCheck className="h-3 w-3 opacity-90" />
+                        <DoubleCheck className="h-3 w-3 opacity-100 text-sky-300" />
                       ) : (
                         <Check className="h-3 w-3 opacity-90" />
                       ))}
@@ -109,7 +109,6 @@ const ChatMessages = ({
             </div>
           );
         })}
-
         {isRemoteTyping && (
           <div className="flex justify-start mb-2">
             <TypingIndicator />

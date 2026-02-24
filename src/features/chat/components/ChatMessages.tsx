@@ -99,7 +99,7 @@ const ChatMessages = ({
                       (isSending ? (
                         <Clock className="h-3 w-3 opacity-70 animate-pulse" />
                       ) : isSeen ? (
-                        <DoubleCheck className="h-3 w-3 opacity-90 text-blue-400" />
+                        <DoubleCheck className="h-3 w-3 opacity-90" />
                       ) : (
                         <Check className="h-3 w-3 opacity-90" />
                       ))}

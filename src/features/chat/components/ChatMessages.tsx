@@ -26,22 +26,35 @@ const ChatMessages = ({
 }: ChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const isLoadingOlderRef = useRef(false);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
+    if (isLoadingOlderRef.current) {
+      isLoadingOlderRef.current = false;
+      return;
+    }
+
     scrollToBottom();
   }, [messages]);
+
+  const handleLoadMoreClick = () => {
+    isLoadingOlderRef.current = true;
+    onLoadMore();
+  };
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto pt-10 pb-2 px-4 md:px-6 flex flex-col-reverse custom-scrollbar [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
       <div className="flex flex-col justify-end min-h-full">
         <div className="h-4 flex-shrink-0" />
+
         {hasMore && messages.length >= 20 && (
           <div className="flex justify-center py-2 mb-4">
             <button
-              onClick={onLoadMore}
+              onClick={handleLoadMoreClick}
               disabled={isLoading}
               className="flex items-center gap-2 text-xs text-[var(--brand-primary)] hover:text-[var(--brand-accent)] bg-white/5 hover:bg-white/10 px-4 py-2 rounded-full transition-colors disabled:opacity-50"
             >
@@ -72,11 +85,9 @@ const ChatMessages = ({
                     : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
                 }`}
               >
-                {/* Flex container to align text and time at the bottom */}
                 <div className="flex items-end gap-2">
                   <p className="text-sm break-words">{msg.content}</p>
 
-                  {/* Time and Status Container */}
                   <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5">
                     <span className="text-[9px] opacity-70 tabular-nums">
                       {new Date(msg.timestamp).toLocaleTimeString([], {

@@ -13,6 +13,7 @@ import {
 } from "./chatSlice";
 import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
+import { useHistoryStack } from "../../hooks/useHistoryStack";
 
 // Components
 import ChatHeader from "./components/ChatHeader";
@@ -47,20 +48,6 @@ const ChatWindow = () => {
       window.history.pushState({ chatOpen: true }, "");
     }
   }, [activeChatUser]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      if (activeChatUser) {
-        dispatch(setActiveChatUser(null));
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [activeChatUser, dispatch]);
 
   useEffect(() => {
     if (activeChatUser && isUserInChatList) {
@@ -118,6 +105,14 @@ const ChatWindow = () => {
       }
     }
   }, [activeChatUser, user]);
+
+  const handleProfileClose = () => setShowProfile(false);
+  useHistoryStack(showProfile, handleProfileClose);
+
+  const isChatOpen = !!activeChatUser && !showProfile;
+
+  const handleChatClose = () => dispatch(setActiveChatUser(null));
+  useHistoryStack(isChatOpen, handleChatClose);
 
   const handleBackClick = () => {
     window.history.back();
@@ -194,7 +189,7 @@ const ChatWindow = () => {
       {showProfile ? (
         <ChatProfile
           user={activeChatUser}
-          onBack={() => setShowProfile(false)}
+          onBack={() => window.history.back()}
         />
       ) : (
         <>

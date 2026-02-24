@@ -22,6 +22,7 @@ import ProfilePanel from "../profile/ProfilePanel";
 import type { ChatUser } from "../../types/chat.types";
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
+import { useHistoryStack } from "../../hooks/useHistoryStack";
 
 const Sidebar = () => {
   const dispatch = useAppDispatch();
@@ -46,6 +47,10 @@ const Sidebar = () => {
 
   // Ref for the dropdown menu
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleProfileClose = () => setShowProfile(false);
+
+  useHistoryStack(showProfile, handleProfileClose);
 
   // Hook to close dropdown when clicking outside
   useOnClickOutside(dropdownRef, () => {
@@ -157,7 +162,7 @@ const Sidebar = () => {
         </div>
 
         {showProfile ? (
-          <ProfilePanel onBack={() => setShowProfile(false)} />
+          <ProfilePanel onBack={() => window.history.back()} />
         ) : (
           <>
             {/* Search Bar */}

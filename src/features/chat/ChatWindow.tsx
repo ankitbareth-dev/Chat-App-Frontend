@@ -43,6 +43,26 @@ const ChatWindow = () => {
     : false;
 
   useEffect(() => {
+    if (activeChatUser) {
+      window.history.pushState({ chatOpen: true }, "");
+    }
+  }, [activeChatUser]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (activeChatUser) {
+        dispatch(setActiveChatUser(null));
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [activeChatUser, dispatch]);
+
+  useEffect(() => {
     if (activeChatUser && isUserInChatList) {
       dispatch(fetchChatHistory({ receiverId: activeChatUser.id, page: 1 }));
     }
@@ -99,9 +119,8 @@ const ChatWindow = () => {
     }
   }, [activeChatUser, user]);
 
-  // Handlers
   const handleBackClick = () => {
-    dispatch(setActiveChatUser(null));
+    window.history.back();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

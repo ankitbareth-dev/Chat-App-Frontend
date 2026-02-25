@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Mic, Send, Loader2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
 import {
@@ -14,11 +14,13 @@ import {
 import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
 import { useHistoryStack } from "../../hooks/useHistoryStack";
+import { useVoiceRecorder } from "../../hooks/useVoiceRecorder";
+import { uploadVoiceNoteApi } from "../../services/chat.service";
+import { toast } from "sonner";
 
 // Components
 import ChatHeader from "./components/ChatHeader";
 import ChatMessages from "./components/ChatMessages";
-import ChatInput from "./components/ChatInput";
 import ChatProfile from "./components/ChatProfile";
 
 type DisplayMessage = ChatMessage & {
@@ -36,12 +38,31 @@ const ChatWindow = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isRemoteTyping, setIsRemoteTyping] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [isSendingVoice, setIsSendingVoice] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Voice Recorder Hook
+  const {
+    isRecording,
+    recordingTime,
+    audioBlob,
+    startRecording,
+    stopRecording,
+    resetRecording,
+    error: recordingError,
+  } = useVoiceRecorder();
 
   const isUserInChatList = activeChatUser
     ? chatList.some((u) => u.id === activeChatUser.id)
     : false;
+
+  // Handle Recording Errors
+  useEffect(() => {
+    if (recordingError) {
+      toast.error(recordingError);
+    }
+  }, [recordingError]);
 
   useEffect(() => {
     if (activeChatUser && isUserInChatList) {
@@ -100,19 +121,19 @@ const ChatWindow = () => {
     }
   }, [activeChatUser, user]);
 
+  // --- History Stack Management ---
   const handleProfileClose = () => setShowProfile(false);
   useHistoryStack(showProfile, handleProfileClose, "chat-profile");
 
   const isChatOpen = !!activeChatUser && !showProfile;
-
   const handleChatClose = () => dispatch(setActiveChatUser(null));
-
   useHistoryStack(isChatOpen, handleChatClose, "chat-window");
 
   const handleBackClick = () => {
     window.history.back();
   };
 
+  // --- Input & Typing Handlers ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputMessage(e.target.value);
     const socket = getSocket();
@@ -125,6 +146,65 @@ const ChatWindow = () => {
     }, 2000);
   };
 
+  useEffect(() => {
+    if (audioBlob && !isRecording && activeChatUser && user) {
+      const sendVoice = async () => {
+        setIsSendingVoice(true);
+        try {
+          const { url, duration } = await uploadVoiceNoteApi(audioBlob);
+
+          // 1. Optimistic Update
+          const tempId = `temp-${Date.now()}`;
+          const optimisticMessage: DisplayMessage = {
+            id: tempId,
+            senderId: user.id,
+            receiverId: activeChatUser.id,
+            content: url,
+            timestamp: new Date().toISOString(),
+            status: "sending",
+            type: "VOICE",
+            duration: duration,
+          };
+          dispatch(addMessage(optimisticMessage));
+
+          // 2. Socket Emit
+          const socket = getSocket();
+          if (socket) {
+            socket.emit("send_message", {
+              receiverId: activeChatUser.id,
+              content: url,
+              type: "VOICE",
+              duration: duration,
+            });
+          }
+
+          resetRecording();
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to send voice message");
+        } finally {
+          setIsSendingVoice(false);
+        }
+      };
+
+      sendVoice();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioBlob, isRecording]);
+
+  const handleMicDown = () => {
+    if (!isSendingVoice) {
+      startRecording();
+    }
+  };
+
+  const handleMicUp = () => {
+    if (isRecording) {
+      stopRecording();
+    }
+  };
+
+  // --- Text Message Handler ---
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !activeChatUser || !user) return;
 
@@ -140,6 +220,7 @@ const ChatWindow = () => {
       content: messageContent,
       timestamp: new Date().toISOString(),
       status: "sending",
+      type: "TEXT",
     };
     dispatch(addMessage(optimisticMessage));
 
@@ -203,11 +284,62 @@ const ChatWindow = () => {
             onLoadMore={handleLoadMore}
           />
 
-          <ChatInput
-            value={inputMessage}
-            onChange={handleInputChange}
-            onSend={handleSendMessage}
-          />
+          {/* Updated Input Area */}
+          <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)] h-[78px] flex items-center flex-shrink-0">
+            <div className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl p-2 w-full">
+              {/* Conditionally Render Input or Recording UI */}
+              {isRecording ? (
+                <div className="flex-1 flex items-center justify-center gap-2 text-red-400 animate-pulse">
+                  <div className="h-3 w-3 bg-red-500 rounded-full" />
+                  <span className="text-sm font-mono">
+                    {new Date(recordingTime * 1000)
+                      .toISOString()
+                      .substring(14, 19)}
+                  </span>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={inputMessage}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  disabled={isSendingVoice}
+                  className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none px-3 py-1 disabled:opacity-50"
+                />
+              )}
+
+              {/* Send or Mic Button */}
+              {inputMessage.trim() ? (
+                <button
+                  onClick={handleSendMessage}
+                  className="p-2 rounded-lg bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors"
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              ) : (
+                <button
+                  onMouseDown={handleMicDown}
+                  onMouseUp={handleMicUp}
+                  onMouseLeave={handleMicUp}
+                  onTouchStart={handleMicDown}
+                  onTouchEnd={handleMicUp}
+                  disabled={isSendingVoice}
+                  className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                    isRecording
+                      ? "bg-red-500 hover:bg-red-600 text-white"
+                      : "bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white"
+                  }`}
+                >
+                  {isSendingVoice ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Mic className="h-5 w-5" />
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
         </>
       )}
     </main>

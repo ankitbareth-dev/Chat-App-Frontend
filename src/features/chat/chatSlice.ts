@@ -21,6 +21,8 @@ export interface Message {
   timestamp: string;
   status?: "sending" | "sent";
   seenAt?: string;
+  type: string;
+  duration?: number | null;
 }
 
 type PaginationState = {

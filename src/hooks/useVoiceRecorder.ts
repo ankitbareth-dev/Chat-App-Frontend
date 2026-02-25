@@ -2,16 +2,20 @@ import { useState, useRef, useCallback } from "react";
 
 interface UseVoiceRecorderReturn {
   isRecording: boolean;
+  isPaused: boolean;
   recordingTime: number;
   audioBlob: Blob | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
+  pauseRecording: () => void;
+  resumeRecording: () => void;
   resetRecording: () => void;
   error: string | null;
 }
 
 export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +29,7 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
     setError(null);
     setAudioBlob(null);
     setRecordingTime(0);
+    setIsPaused(false);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -67,6 +72,7 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setIsPaused(false);
 
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -74,18 +80,41 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
     }
   }, [isRecording]);
 
+  const pauseRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording && !isPaused) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, [isRecording, isPaused]);
+
+  const resumeRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording && isPaused) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+      timerRef.current = setInterval(() => {
+        setRecordingTime((prev) => prev + 1);
+      }, 1000);
+    }
+  }, [isRecording, isPaused]);
+
   const resetRecording = useCallback(() => {
     setAudioBlob(null);
     setRecordingTime(0);
     setError(null);
+    setIsRecording(false);
+    setIsPaused(false);
   }, []);
 
   return {
     isRecording,
+    isPaused,
     recordingTime,
     audioBlob,
     startRecording,
     stopRecording,
+    pauseRecording,
+    resumeRecording,
     resetRecording,
     error,
   };

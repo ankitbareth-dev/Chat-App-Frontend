@@ -1,5 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { MessageCircle, Mic, Send, Loader2 } from "lucide-react";
+import {
+  MessageCircle,
+  Mic,
+  Send,
+  Loader2,
+  Pause,
+  Square,
+  X,
+  Play,
+} from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
 import {
@@ -45,10 +54,13 @@ const ChatWindow = () => {
   // Voice Recorder Hook
   const {
     isRecording,
+    isPaused,
     recordingTime,
     audioBlob,
     startRecording,
     stopRecording,
+    pauseRecording,
+    resumeRecording,
     resetRecording,
     error: recordingError,
   } = useVoiceRecorder();
@@ -59,11 +71,10 @@ const ChatWindow = () => {
 
   // Handle Recording Errors
   useEffect(() => {
-    if (recordingError) {
-      toast.error(recordingError);
-    }
+    if (recordingError) toast.error(recordingError);
   }, [recordingError]);
 
+  // Fetch History
   useEffect(() => {
     if (activeChatUser && isUserInChatList) {
       dispatch(fetchChatHistory({ receiverId: activeChatUser.id, page: 1 }));
@@ -115,25 +126,19 @@ const ChatWindow = () => {
   useEffect(() => {
     if (activeChatUser && user) {
       const socket = getSocket();
-      if (socket) {
-        socket.emit("mark_seen", { senderId: activeChatUser.id });
-      }
+      if (socket) socket.emit("mark_seen", { senderId: activeChatUser.id });
     }
   }, [activeChatUser, user]);
 
-  // --- History Stack Management ---
+  // History Stack
   const handleProfileClose = () => setShowProfile(false);
   useHistoryStack(showProfile, handleProfileClose, "chat-profile");
-
   const isChatOpen = !!activeChatUser && !showProfile;
   const handleChatClose = () => dispatch(setActiveChatUser(null));
   useHistoryStack(isChatOpen, handleChatClose, "chat-window");
+  const handleBackClick = () => window.history.back();
 
-  const handleBackClick = () => {
-    window.history.back();
-  };
-
-  // --- Input & Typing Handlers ---
+  // Input Handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputMessage(e.target.value);
     const socket = getSocket();
@@ -146,14 +151,13 @@ const ChatWindow = () => {
     }, 2000);
   };
 
+  // Voice Send Logic
   useEffect(() => {
     if (audioBlob && !isRecording && activeChatUser && user) {
       const sendVoice = async () => {
         setIsSendingVoice(true);
         try {
           const { url, duration } = await uploadVoiceNoteApi(audioBlob);
-
-          // 1. Optimistic Update
           const tempId = `temp-${Date.now()}`;
           const optimisticMessage: DisplayMessage = {
             id: tempId,
@@ -166,8 +170,6 @@ const ChatWindow = () => {
             duration: duration,
           };
           dispatch(addMessage(optimisticMessage));
-
-          // 2. Socket Emit
           const socket = getSocket();
           if (socket) {
             socket.emit("send_message", {
@@ -177,7 +179,6 @@ const ChatWindow = () => {
               duration: duration,
             });
           }
-
           resetRecording();
         } catch (error) {
           console.error(error);
@@ -186,51 +187,32 @@ const ChatWindow = () => {
           setIsSendingVoice(false);
         }
       };
-
       sendVoice();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioBlob, isRecording]);
 
-  const handleMicDown = () => {
-    if (!isSendingVoice) {
-      startRecording();
-    }
-  };
-
-  const handleMicUp = () => {
-    if (isRecording) {
-      stopRecording();
-    }
-  };
-
-  // --- Text Message Handler ---
+  // Text Send Logic
   const handleSendMessage = () => {
     if (!inputMessage.trim() || !activeChatUser || !user) return;
-
     const socket = getSocket();
     if (!socket) return;
     const tempId = `temp-${Date.now()}`;
-    const messageContent = inputMessage;
-
     const optimisticMessage: DisplayMessage = {
       id: tempId,
       senderId: user.id,
       receiverId: activeChatUser.id,
-      content: messageContent,
+      content: inputMessage,
       timestamp: new Date().toISOString(),
       status: "sending",
       type: "TEXT",
     };
     dispatch(addMessage(optimisticMessage));
-
     setInputMessage("");
-
     socket.emit("send_message", {
       receiverId: activeChatUser.id,
-      content: messageContent,
+      content: inputMessage,
     });
-
     socket.emit("stop_typing", { receiverId: activeChatUser.id });
   };
 
@@ -242,6 +224,13 @@ const ChatWindow = () => {
         page: currentPage + 1,
       }),
     );
+  };
+
+  // Helper for time formatting
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   if (!activeChatUser) {
@@ -274,7 +263,6 @@ const ChatWindow = () => {
             onBack={handleBackClick}
             onProfileClick={() => setShowProfile(true)}
           />
-
           <ChatMessages
             messages={messages as DisplayMessage[]}
             currentUserId={user?.id}
@@ -284,59 +272,89 @@ const ChatWindow = () => {
             onLoadMore={handleLoadMore}
           />
 
-          {/* Updated Input Area */}
-          <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)] h-[78px] flex items-center flex-shrink-0">
-            <div className="flex items-center gap-3 bg-[var(--bg-surface)] rounded-xl p-2 w-full">
-              {/* Conditionally Render Input or Recording UI */}
+          {/* Input Area */}
+          <div className="p-4 border-t border-white/5 bg-[var(--bg-deep)] min-h-[78px] flex items-center flex-shrink-0">
+            <div className="flex items-center gap-3 w-full">
+              {/* Conditionally Render Input or Recording Info */}
               {isRecording ? (
-                <div className="flex-1 flex items-center justify-center gap-2 text-red-400 animate-pulse">
-                  <div className="h-3 w-3 bg-red-500 rounded-full" />
-                  <span className="text-sm font-mono">
-                    {new Date(recordingTime * 1000)
-                      .toISOString()
-                      .substring(14, 19)}
-                  </span>
+                <div className="flex-1 flex items-center justify-between bg-[var(--bg-surface)] rounded-xl p-2 px-4">
+                  <div className="flex items-center gap-2 text-red-400">
+                    <div className="h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-mono font-bold">
+                      {formatTime(recordingTime)}
+                    </span>
+                    {isPaused && (
+                      <span className="text-xs opacity-70 ml-1">(Paused)</span>
+                    )}
+                  </div>
+
+                  {/* Recording Controls */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={resetRecording}
+                      className="p-2 rounded-full hover:bg-white/10 text-[var(--text-muted)]"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+
+                    {isPaused ? (
+                      <button
+                        onClick={resumeRecording}
+                        className="p-2 rounded-full bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        <Play className="h-5 w-5 fill-white" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={pauseRecording}
+                        className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white"
+                      >
+                        <Pause className="h-5 w-5" />
+                      </button>
+                    )}
+
+                    <button
+                      onClick={stopRecording}
+                      className="p-2 rounded-full bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white"
+                    >
+                      <Square className="h-5 w-5 fill-white" />
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  value={inputMessage}
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  disabled={isSendingVoice}
-                  className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none px-3 py-1 disabled:opacity-50"
-                />
-              )}
+                <>
+                  {/* Default Input Field */}
+                  <div className="flex-1 bg-[var(--bg-surface)] rounded-xl px-4 py-2.5 flex items-center">
+                    <input
+                      type="text"
+                      placeholder="Type a message..."
+                      value={inputMessage}
+                      onChange={handleInputChange}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleSendMessage()
+                      }
+                      disabled={isSendingVoice}
+                      className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none"
+                    />
+                  </div>
 
-              {/* Send or Mic Button */}
-              {inputMessage.trim() ? (
-                <button
-                  onClick={handleSendMessage}
-                  className="p-2 rounded-lg bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
-              ) : (
-                <button
-                  onMouseDown={handleMicDown}
-                  onMouseUp={handleMicUp}
-                  onMouseLeave={handleMicUp}
-                  onTouchStart={handleMicDown}
-                  onTouchEnd={handleMicUp}
-                  disabled={isSendingVoice}
-                  className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
-                    isRecording
-                      ? "bg-red-500 hover:bg-red-600 text-white"
-                      : "bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white"
-                  }`}
-                >
-                  {isSendingVoice ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Mic className="h-5 w-5" />
-                  )}
-                </button>
+                  {/* Action Button (Send or Mic) */}
+                  <button
+                    onClick={
+                      inputMessage.trim() ? handleSendMessage : startRecording
+                    }
+                    disabled={isSendingVoice}
+                    className="p-3 rounded-xl bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {isSendingVoice ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : inputMessage.trim() ? (
+                      <Send className="h-5 w-5 transition-transform duration-200 scale-100" />
+                    ) : (
+                      <Mic className="h-5 w-5 transition-transform duration-200 scale-100" />
+                    )}
+                  </button>
+                </>
               )}
             </div>
           </div>

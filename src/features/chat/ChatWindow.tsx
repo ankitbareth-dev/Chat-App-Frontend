@@ -106,7 +106,6 @@ const ChatWindow = () => {
   const isChatOpen = !!activeChatUser && !showProfile;
 
   const handleChatClose = () => dispatch(setActiveChatUser(null));
-  useHistoryStack(isChatOpen, handleChatClose);
 
   useHistoryStack(isChatOpen, handleChatClose, "chat-window");
 

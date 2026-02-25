@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Loader2 } from "lucide-react";
 import { audioManager } from "../utils/audioManager";
 
 type AudioPlayerProps = {
@@ -19,111 +19,175 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isLoadingWaveform, setIsLoadingWaveform] = useState(true);
 
-  // Web Audio API Refs
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const waveformData = useRef<number[]>([]);
   const animationIdRef = useRef<number | null>(null);
+
+  const draw = () => {
+    if (!canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+
+    if (
+      canvas.width !== rect.width * dpr ||
+      canvas.height !== rect.height * dpr
+    ) {
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    const width = rect.width;
+    const height = rect.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    const playedColor = getCSSVar("--brand-primary") || "#6366f1";
+    const unplayedColor = getCSSVar("--text-muted") || "#94a3b8";
+    const progressHeadColor = getCSSVar("--brand-accent") || "#a855f7";
+
+    const progressPercent = durationTime > 0 ? currentTime / durationTime : 0;
+    const progressX = width * progressPercent;
+
+    const data = waveformData.current;
+    const barCount = data.length;
+    const barWidth = 3;
+    const gap = 3;
+    const totalWaveformWidth = barCount * (barWidth + gap) - gap;
+    const startX = (width - totalWaveformWidth) / 2; // Center align
+
+    for (let i = 0; i < barCount; i++) {
+      const amplitude = data[i] || 0;
+
+      const h = Math.max(4, amplitude * height * 0.8);
+
+      const x = startX + i * (barWidth + gap);
+      const y = (height - h) / 2;
+
+      const barCenterX = x + barWidth / 2;
+      const isPlayed = barCenterX < progressX;
+
+      ctx.fillStyle = isPlayed ? playedColor : `${unplayedColor}40`; // 40 = 25% opacity
+
+      ctx.beginPath();
+      ctx.roundRect(x, y, barWidth, h, 2);
+      ctx.fill();
+    }
+
+    if (progressX > 0 && progressX < width) {
+      ctx.beginPath();
+      ctx.arc(progressX, height / 2, 4, 0, Math.PI * 2);
+      ctx.fillStyle = progressHeadColor;
+      ctx.fill();
+
+      ctx.shadowColor = progressHeadColor;
+      ctx.shadowBlur = 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  };
 
   const [durationTime, setDurationTime] = useState(() => {
     const d = Number(duration);
     return !isNaN(d) && d > 0 ? d : 0;
   });
 
-  // Initialize Audio Context & Analyser
-  const initAudioContext = () => {
-    if (!audioRef.current || audioContextRef.current) return;
-
-    const audioContext = new (
-      window.AudioContext ||
-      (
-        window as unknown as Window & {
-          webkitAudioContext: typeof AudioContext;
-        }
-      ).webkitAudioContext
-    )();
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 64;
-
-    const source = audioContext.createMediaElementSource(audioRef.current);
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-
-    audioContextRef.current = audioContext;
-    analyserRef.current = analyser;
-    sourceRef.current = source;
+  const getCSSVar = (name: string) => {
+    if (typeof window !== "undefined") {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue(name)
+        .trim();
+    }
+    return "";
   };
 
-  // Canvas Drawing Loop
-  const draw = () => {
-    if (!canvasRef.current || !analyserRef.current) return;
+  useEffect(() => {
+    const generateWaveform = async () => {
+      if (!url) return;
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+      try {
+        setIsLoadingWaveform(true);
 
-    // Get frequency data
-    const bufferLength = analyserRef.current.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    analyserRef.current.getByteFrequencyData(dataArray);
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const audioContext = new (
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext })
+            .webkitAudioContext
+        )();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    // Dimensions
-    const width = canvas.width;
-    const height = canvas.height;
-    const barWidth = (width / bufferLength) * 1.5; // 1.5 for gap
-    const gap = 2;
-    let x = 0;
+        const rawData = audioBuffer.getChannelData(0);
 
-    const progressPercent = durationTime > 0 ? currentTime / durationTime : 0;
+        const samples = 50;
+        const blockSize = Math.floor(rawData.length / samples);
+        const filteredData = [];
 
-    for (let i = 0; i < bufferLength; i++) {
-      const barHeight = (dataArray[i] / 255) * height;
+        for (let i = 0; i < samples; i++) {
+          const blockStart = blockSize * i;
+          let sum = 0;
 
-      const isPlayed = x < width * progressPercent;
+          for (let j = 0; j < blockSize; j++) {
+            sum += Math.abs(rawData[blockStart + j]);
+          }
+          filteredData.push(sum / blockSize);
+        }
 
-      if (isPlayed) {
-        ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
-      } else {
-        ctx.fillStyle = `rgba(255, 255, 255, 0.3)`;
+        const max = Math.max(...filteredData);
+        const multiplier = max > 0 ? 1 / max : 1;
+        const normalizedData = filteredData.map((n) => n * multiplier);
+
+        waveformData.current = normalizedData;
+
+        audioContext.close();
+        setIsLoadingWaveform(false);
+
+        draw();
+      } catch (error) {
+        console.error("Error generating waveform:", error);
+        setIsLoadingWaveform(false);
+
+        waveformData.current = Array(50).fill(0.5);
+        draw();
       }
+    };
 
-      ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+    generateWaveform();
+  }, [url]);
 
-      x += barWidth + gap;
+  useEffect(() => {
+    if (isPlaying) {
+      animationIdRef.current = requestAnimationFrame(draw);
+    } else {
+      draw();
     }
 
-    animationIdRef.current = requestAnimationFrame(draw);
-  };
+    return () => {
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+    };
+  }, [currentTime, isPlaying, durationTime]);
 
-  // Setup & Cleanup
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handlePlay = () => {
-      initAudioContext();
-
-      if (audioContextRef.current?.state === "suspended") {
-        audioContextRef.current.resume();
-      }
-
       audioManager.play(audio);
       setIsPlaying(true);
-
-      animationIdRef.current = requestAnimationFrame(draw);
     };
 
     const handlePause = () => {
       audioManager.stop(audio);
       setIsPlaying(false);
-
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
     };
 
     const handleTimeUpdate = () => {
@@ -139,9 +203,6 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
     const handleEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
     };
 
     audio.addEventListener("play", handlePlay);
@@ -156,20 +217,6 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
-
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
-
-      if (sourceRef.current) {
-        sourceRef.current.disconnect();
-      }
-      if (analyserRef.current) {
-        analyserRef.current.disconnect();
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
     };
   }, [durationTime]);
 
@@ -194,13 +241,16 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
   };
 
   return (
-    <div className="flex items-center gap-3 w-full min-w-[220px] max-w-[320px]">
+    <div className="flex items-center gap-3 w-full min-w-[240px] max-w-[360px]">
       {/* Play/Pause Button */}
       <button
         onClick={togglePlayPause}
-        className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors flex-shrink-0 z-10"
+        disabled={isLoadingWaveform}
+        className="p-2.5 rounded-full bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] transition-colors flex-shrink-0 z-10 shadow-lg shadow-[var(--brand-primary)]/20 disabled:opacity-50"
       >
-        {isPlaying ? (
+        {isLoadingWaveform ? (
+          <Loader2 className="h-4 w-4 text-white animate-spin" />
+        ) : isPlaying ? (
           <Pause className="h-4 w-4 text-white fill-white" />
         ) : (
           <Play className="h-4 w-4 text-white fill-white ml-0.5" />
@@ -212,19 +262,13 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
         className="flex-1 flex flex-col gap-1 cursor-pointer"
         onClick={handleSeek}
       >
-        <div className="h-8 bg-white/10 rounded-full overflow-hidden relative">
+        <div className="h-10 bg-[var(--bg-surface)] border border-white/5 rounded-full overflow-hidden relative backdrop-blur-md shadow-inner">
           {/* Canvas Element */}
-          <canvas
-            ref={canvasRef}
-            className="w-full h-full"
-            // Set width/height attributes for canvas context scaling
-            width={500}
-            height={100}
-          />
+          <canvas ref={canvasRef} className="w-full h-full" />
         </div>
 
         {/* Time Display */}
-        <div className="flex justify-between text-[10px] text-white/70 tabular-nums">
+        <div className="flex justify-between text-[10px] text-white/60 tabular-nums px-1">
           <span>{formatTime(currentTime)}</span>
           <span>{formatTime(durationTime)}</span>
         </div>
@@ -235,7 +279,7 @@ const AudioPlayer = ({ url, duration }: AudioPlayerProps) => {
         ref={audioRef}
         src={url}
         preload="metadata"
-        crossOrigin="anonymous" // Required for Web Audio API if audio is CORS
+        crossOrigin="anonymous"
       />
     </div>
   );

@@ -69,7 +69,6 @@ const ChatWindow = () => {
     ? chatList.some((u) => u.id === activeChatUser.id)
     : false;
 
-  // Handle Recording Errors
   useEffect(() => {
     if (recordingError) toast.error(recordingError);
   }, [recordingError]);
@@ -170,6 +169,7 @@ const ChatWindow = () => {
             duration: duration,
           };
           dispatch(addMessage(optimisticMessage));
+
           const socket = getSocket();
           if (socket) {
             socket.emit("send_message", {
@@ -349,9 +349,9 @@ const ChatWindow = () => {
                     {isSendingVoice ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : inputMessage.trim() ? (
-                      <Send className="h-5 w-5 transition-transform duration-200 scale-100" />
+                      <Send className="h-5 w-5" />
                     ) : (
-                      <Mic className="h-5 w-5 transition-transform duration-200 scale-100" />
+                      <Mic className="h-5 w-5" />
                     )}
                   </button>
                 </>

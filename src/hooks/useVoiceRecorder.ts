@@ -25,11 +25,19 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
   const startRecording = useCallback(async () => {
     setError(null);
     setAudioBlob(null);
     setRecordingTime(0);
     setIsPaused(false);
+    clearTimer();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -46,11 +54,8 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
-        setAudioBlob(audioBlob);
-
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setAudioBlob(blob);
         if (streamRef.current) {
           streamRef.current.getTracks().forEach((track) => track.stop());
         }
@@ -66,45 +71,44 @@ export const useVoiceRecorder = (): UseVoiceRecorderReturn => {
       console.error("Error accessing microphone:", err);
       setError("Microphone access denied or not available.");
     }
-  }, []);
+  }, [clearTimer]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setIsPaused(false);
-
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      clearTimer();
     }
-  }, [isRecording]);
+  }, [isRecording, clearTimer]);
 
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
       mediaRecorderRef.current.pause();
       setIsPaused(true);
-      if (timerRef.current) clearInterval(timerRef.current);
+      clearTimer();
     }
-  }, [isRecording, isPaused]);
+  }, [isRecording, isPaused, clearTimer]);
 
   const resumeRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording && isPaused) {
       mediaRecorderRef.current.resume();
       setIsPaused(false);
+      clearTimer();
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     }
-  }, [isRecording, isPaused]);
+  }, [isRecording, isPaused, clearTimer]);
 
   const resetRecording = useCallback(() => {
+    clearTimer();
     setAudioBlob(null);
     setRecordingTime(0);
     setError(null);
     setIsRecording(false);
     setIsPaused(false);
-  }, []);
+  }, [clearTimer]);
 
   return {
     isRecording,

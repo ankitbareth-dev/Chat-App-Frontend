@@ -80,19 +80,40 @@ const ChatMessages = ({
               className={`flex w-full ${isMine ? "justify-end" : "justify-start"} mb-2`}
             >
               <div
-                className={`relative max-w-[280px] md:max-w-md px-3 py-2 rounded-2xl shadow-sm ${
+                className={`relative px-3 py-2 rounded-2xl shadow-sm ${
                   isMine
                     ? "bg-[var(--brand-primary)] text-white rounded-br-none"
                     : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
+                } ${
+                  msg.type === "VOICE"
+                    ? "min-w-[200px] max-w-[320px] md:max-w-[360px]"
+                    : "max-w-[280px] md:max-w-md"
                 }`}
               >
-                {/* CONDITIONAL RENDERING FOR VOICE */}
                 {msg.type === "VOICE" && msg.content ? (
-                  <AudioPlayer url={msg.content} duration={msg.duration} />
+                  <div className="flex items-end gap-2">
+                    <AudioPlayer url={msg.content} duration={msg.duration} />
+
+                    <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5 mb-1">
+                      <span className="text-[9px] opacity-70 tabular-nums">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {isMine &&
+                        (isSending ? (
+                          <Clock className="h-3 w-3 opacity-70 animate-pulse" />
+                        ) : isSeen ? (
+                          <DoubleCheck className="h-3 w-3 opacity-90 text-sky-300" />
+                        ) : (
+                          <Check className="h-3 w-3 opacity-90" />
+                        ))}
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex items-end gap-2">
                     <p className="text-sm break-words">{msg.content}</p>
-
                     <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5">
                       <span className="text-[9px] opacity-70 tabular-nums">
                         {new Date(msg.timestamp).toLocaleTimeString([], {

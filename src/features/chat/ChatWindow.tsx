@@ -1,14 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  MessageCircle,
-  Mic,
-  Send,
-  Loader2,
-  Pause,
-  Square,
-  X,
-  Play,
-} from "lucide-react";
+import { MessageCircle, Mic, Send, Pause, Square, X, Play } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
 import {
@@ -48,7 +39,6 @@ const ChatWindow = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isRemoteTyping, setIsRemoteTyping] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [isSendingVoice, setIsSendingVoice] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -169,7 +159,6 @@ const ChatWindow = () => {
         };
         dispatch(addMessage(optimisticMessage));
         resetRecording();
-        setIsSendingVoice(true);
 
         try {
           const { url, duration } = await uploadVoiceNoteApi(audioBlob);
@@ -190,8 +179,6 @@ const ChatWindow = () => {
         } catch (error) {
           console.error(error);
           toast.error("Failed to send voice message");
-        } finally {
-          setIsSendingVoice(false);
         }
       };
       sendVoice();
@@ -340,7 +327,6 @@ const ChatWindow = () => {
                       onKeyDown={(e) =>
                         e.key === "Enter" && handleSendMessage()
                       }
-                      disabled={isSendingVoice}
                       className="flex-1 bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-sm outline-none"
                     />
                   </div>
@@ -350,12 +336,9 @@ const ChatWindow = () => {
                     onClick={
                       inputMessage.trim() ? handleSendMessage : startRecording
                     }
-                    disabled={isSendingVoice}
-                    className="p-3 rounded-xl bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors disabled:opacity-50 flex items-center justify-center"
+                    className="p-3 rounded-xl bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors  flex items-center justify-center"
                   >
-                    {isSendingVoice ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : inputMessage.trim() ? (
+                    {inputMessage.trim() ? (
                       <Send className="h-5 w-5" />
                     ) : (
                       <Mic className="h-5 w-5" />

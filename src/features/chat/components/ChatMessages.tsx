@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Loader2, ChevronUp } from "lucide-react";
 import TypingIndicator from "../../../components/TypingIndicator";
 import type { ChatMessage } from "../../../types/chat.types";
+import AudioPlayer from "../../../components/AudioPlayer";
 
 type DisplayMessage = ChatMessage & {
   status?: "sending" | "sent";
@@ -85,30 +86,36 @@ const ChatMessages = ({
                     : "bg-[var(--bg-surface)] text-[var(--text-main)] border border-white/5 rounded-bl-none"
                 }`}
               >
-                <div className="flex items-end gap-2">
-                  <p className="text-sm break-words">{msg.content}</p>
+                {/* CONDITIONAL RENDERING FOR VOICE */}
+                {msg.type === "VOICE" && msg.content ? (
+                  <AudioPlayer url={msg.content} duration={msg.duration} />
+                ) : (
+                  <div className="flex items-end gap-2">
+                    <p className="text-sm break-words">{msg.content}</p>
 
-                  <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5">
-                    <span className="text-[9px] opacity-70 tabular-nums">
-                      {new Date(msg.timestamp).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                    {isMine &&
-                      (isSending ? (
-                        <Clock className="h-3 w-3 opacity-70 animate-pulse" />
-                      ) : isSeen ? (
-                        <DoubleCheck className="h-3 w-3 opacity-100 text-sky-300" />
-                      ) : (
-                        <Check className="h-3 w-3 opacity-90" />
-                      ))}
+                    <div className="flex items-center gap-1 flex-shrink-0 self-end pb-0.5">
+                      <span className="text-[9px] opacity-70 tabular-nums">
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      {isMine &&
+                        (isSending ? (
+                          <Clock className="h-3 w-3 opacity-70 animate-pulse" />
+                        ) : isSeen ? (
+                          <DoubleCheck className="h-3 w-3 opacity-90 text-sky-300" />
+                        ) : (
+                          <Check className="h-3 w-3 opacity-90" />
+                        ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           );
         })}
+
         {isRemoteTyping && (
           <div className="flex justify-start mb-2">
             <TypingIndicator />

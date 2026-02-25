@@ -292,6 +292,21 @@ const chatSlice = createSlice({
         state.chatList.unshift(user);
       }
     },
+
+    updateOptimisticUrl: (state, action) => {
+      const { tempId, url } = action.payload;
+      const chatId = state.activeChatUser?.id;
+      if (!chatId) return;
+
+      const userMessages = state.messages[chatId];
+      if (userMessages) {
+        const index = userMessages.findIndex((msg) => msg.id === tempId);
+        if (index !== -1) {
+          userMessages[index].content = url;
+          userMessages[index].status = "sending";
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -388,6 +403,7 @@ export const {
   handleIncomingMessage,
   setMessagesSeen,
   addUserToChatList,
+  updateOptimisticUrl,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

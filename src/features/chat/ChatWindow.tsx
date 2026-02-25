@@ -19,6 +19,7 @@ import {
   setActiveChatUser,
   selectActiveChatMessages,
   selectActiveChatPagination,
+  updateOptimisticUrl,
 } from "./chatSlice";
 import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
@@ -150,25 +151,30 @@ const ChatWindow = () => {
     }, 2000);
   };
 
-  // Voice Send Logic
   useEffect(() => {
     if (audioBlob && !isRecording && activeChatUser && user) {
       const sendVoice = async () => {
+        const localUrl = URL.createObjectURL(audioBlob);
+        const tempId = `temp-${Date.now()}`;
+
+        const optimisticMessage: DisplayMessage = {
+          id: tempId,
+          senderId: user.id,
+          receiverId: activeChatUser.id,
+          content: localUrl,
+          timestamp: new Date().toISOString(),
+          status: "sending",
+          type: "VOICE",
+          duration: recordingTime,
+        };
+        dispatch(addMessage(optimisticMessage));
+        resetRecording();
         setIsSendingVoice(true);
+
         try {
           const { url, duration } = await uploadVoiceNoteApi(audioBlob);
-          const tempId = `temp-${Date.now()}`;
-          const optimisticMessage: DisplayMessage = {
-            id: tempId,
-            senderId: user.id,
-            receiverId: activeChatUser.id,
-            content: url,
-            timestamp: new Date().toISOString(),
-            status: "sending",
-            type: "VOICE",
-            duration: duration,
-          };
-          dispatch(addMessage(optimisticMessage));
+
+          dispatch(updateOptimisticUrl({ tempId, url }));
 
           const socket = getSocket();
           if (socket) {
@@ -179,7 +185,8 @@ const ChatWindow = () => {
               duration: duration,
             });
           }
-          resetRecording();
+
+          URL.revokeObjectURL(localUrl);
         } catch (error) {
           console.error(error);
           toast.error("Failed to send voice message");

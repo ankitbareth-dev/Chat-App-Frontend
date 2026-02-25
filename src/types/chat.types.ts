@@ -16,6 +16,9 @@ export interface ChatMessage {
   seenAt?: string;
   status?: "sending" | "sent";
 
+  type: "TEXT" | "VOICE";
+  duration?: number;
+
   sender?: {
     id: string;
     name: string;

@@ -1,5 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { MessageCircle, Mic, Send, Pause, Square, X, Play } from "lucide-react";
+import {
+  MessageCircle,
+  Mic,
+  Send,
+  Pause,
+  Square,
+  X,
+  Play,
+  Paperclip,
+} from "lucide-react";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectAuth } from "../auth/authSlice";
 import {
@@ -16,7 +25,10 @@ import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
 import { useHistoryStack } from "../../hooks/useHistoryStack";
 import { useVoiceRecorder } from "../../hooks/useVoiceRecorder";
-import { uploadVoiceNoteApi } from "../../services/chat.service";
+import {
+  uploadMediaApi,
+  uploadVoiceNoteApi,
+} from "../../services/chat.service";
 import { toast } from "sonner";
 
 // Components
@@ -42,6 +54,7 @@ const ChatWindow = () => {
   const [showProfile, setShowProfile] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Voice Recorder Hook
   const {
@@ -146,6 +159,81 @@ const ChatWindow = () => {
   const handleChatClose = () => dispatch(setActiveChatUser(null));
   useHistoryStack(isChatOpen, handleChatClose, "chat-window");
   const handleBackClick = () => window.history.back();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChatUser || !user) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const localUrl = URL.createObjectURL(file); // Local preview
+
+    // Determine type
+    let type: "IMAGE" | "VIDEO" | "PDF" = "IMAGE";
+    if (file.type.startsWith("video")) type = "VIDEO";
+    else if (file.type === "application/pdf") type = "PDF";
+
+    // 1. Optimistic Message
+    const optimisticMessage: DisplayMessage = {
+      id: tempId,
+      senderId: user.id,
+      receiverId: activeChatUser.id,
+      content: localUrl, // Use local blob for immediate preview
+      timestamp: new Date().toISOString(),
+      status: "sending",
+      type: type,
+      fileName: file.name,
+      fileSize: file.size,
+      mimeType: file.type,
+      // thumbnailUrl can be set here if you generate it client-side, but localUrl acts as preview for now
+      thumbnailUrl: type !== "PDF" ? localUrl : undefined,
+    };
+
+    dispatch(addMessage(optimisticMessage));
+    setInputMessage("");
+    if (fileInputRef.current) fileInputRef.current.value = ""; // Reset input
+
+    // 2. Upload & Send
+    const sendMedia = async () => {
+      try {
+        const mediaData = await uploadMediaApi(file);
+
+        // Update Redux with real URLs
+        dispatch(
+          updateOptimisticUrl({
+            tempId,
+            url: mediaData.url,
+            thumbnailUrl: mediaData.thumbnailUrl,
+            fileName: mediaData.fileName,
+            fileSize: mediaData.fileSize,
+            mimeType: mediaData.mimeType,
+            duration: mediaData.duration,
+          }),
+        );
+
+        // Emit Socket
+        const socket = getSocket();
+        if (socket) {
+          socket.emit("send_message", {
+            receiverId: activeChatUser.id,
+            content: mediaData.url,
+            type: type,
+            fileName: mediaData.fileName,
+            fileSize: mediaData.fileSize,
+            mimeType: mediaData.mimeType,
+            thumbnailUrl: mediaData.thumbnailUrl,
+            duration: mediaData.duration,
+          });
+        }
+
+        URL.revokeObjectURL(localUrl);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to send media");
+      }
+    };
+
+    sendMedia();
+  };
 
   // Input Handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,8 +439,23 @@ const ChatWindow = () => {
                 </div>
               ) : (
                 <>
+                  {/* Hidden File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept="image/*,video/*,application/pdf"
+                  />
+
                   {/* Default Input Field */}
-                  <div className="flex-1 bg-[var(--bg-surface)] rounded-xl px-4 py-2.5 flex items-center">
+                  <div className="flex-1 bg-[var(--bg-surface)] rounded-xl px-4 py-2.5 flex items-center gap-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
+                    >
+                      <Paperclip className="h-5 w-5" />
+                    </button>
                     <input
                       type="text"
                       placeholder="Type a message..."
@@ -365,7 +468,7 @@ const ChatWindow = () => {
                     />
                   </div>
 
-                  {/* Action Button (Send or Mic) */}
+                  {/* Action Button */}
                   <button
                     onClick={() => {
                       if (inputMessage.trim()) {

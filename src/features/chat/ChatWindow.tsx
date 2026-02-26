@@ -39,6 +39,9 @@ import ChatProfile from "./components/ChatProfile";
 
 type DisplayMessage = ChatMessage & {
   status?: "sending" | "sent";
+  uploadProgress?: number;
+  thumbnailUrl?: string;
+  localUrl?: string;
 };
 
 const ChatWindow = () => {

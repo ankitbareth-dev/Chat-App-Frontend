@@ -21,8 +21,13 @@ export interface Message {
   timestamp: string;
   status?: "sending" | "sent";
   seenAt?: string;
-  type: string;
-  duration?: number | null;
+  type: "TEXT" | "VOICE" | "IMAGE" | "VIDEO" | "PDF";
+  duration?: number;
+
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  thumbnailUrl?: string;
 }
 
 type PaginationState = {
@@ -294,7 +299,15 @@ const chatSlice = createSlice({
     },
 
     updateOptimisticUrl: (state, action) => {
-      const { tempId, url } = action.payload;
+      const {
+        tempId,
+        url,
+        thumbnailUrl,
+        fileName,
+        fileSize,
+        mimeType,
+        duration,
+      } = action.payload;
       const chatId = state.activeChatUser?.id;
       if (!chatId) return;
 
@@ -304,6 +317,12 @@ const chatSlice = createSlice({
         if (index !== -1) {
           userMessages[index].content = url;
           userMessages[index].status = "sending";
+
+          if (thumbnailUrl) userMessages[index].thumbnailUrl = thumbnailUrl;
+          if (fileName) userMessages[index].fileName = fileName;
+          if (fileSize) userMessages[index].fileSize = fileSize;
+          if (mimeType) userMessages[index].mimeType = mimeType;
+          if (duration) userMessages[index].duration = duration;
         }
       }
     },

@@ -38,6 +38,7 @@ const ChatWindow = () => {
 
   const [inputMessage, setInputMessage] = useState("");
   const [isRemoteTyping, setIsRemoteTyping] = useState(false);
+  const [isRemoteRecording, setIsRemoteRecording] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,11 +106,29 @@ const ChatWindow = () => {
     socket.on("user_typing", handleUserTyping);
     socket.on("user_stopped_typing", handleUserStoppedTyping);
 
+    const handleUserRecording = (data: { senderId: string }) => {
+      if (data.senderId === activeChatUser.id) {
+        setIsRemoteRecording(true);
+        setIsRemoteTyping(false);
+      }
+    };
+
+    const handleUserStoppedRecording = (data: { senderId: string }) => {
+      if (data.senderId === activeChatUser.id) {
+        setIsRemoteRecording(false);
+      }
+    };
+
+    socket.on("user_recording", handleUserRecording);
+    socket.on("user_stopped_recording", handleUserStoppedRecording);
+
     return () => {
       socket.off("receive_message", handleReceiveMessage);
       socket.off("message_sent", handleMessageSent);
       socket.off("user_typing", handleUserTyping);
       socket.off("user_stopped_typing", handleUserStoppedTyping);
+      socket.off("user_recording", handleUserRecording);
+      socket.off("user_stopped_recording", handleUserStoppedRecording);
     };
   }, [activeChatUser, dispatch]);
 
@@ -264,6 +283,7 @@ const ChatWindow = () => {
             isLoading={isLoadingHistory}
             isRemoteTyping={isRemoteTyping}
             onLoadMore={handleLoadMore}
+            isRemoteRecording={isRemoteRecording}
           />
 
           {/* Input Area */}
@@ -285,7 +305,14 @@ const ChatWindow = () => {
                   {/* Recording Controls */}
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={resetRecording}
+                      onClick={() => {
+                        const socket = getSocket();
+                        if (socket)
+                          socket.emit("stop_recording", {
+                            receiverId: activeChatUser.id,
+                          });
+                        resetRecording();
+                      }}
                       className="p-2 rounded-full hover:bg-white/10 text-[var(--text-muted)]"
                     >
                       <X className="h-5 w-5" />
@@ -308,7 +335,14 @@ const ChatWindow = () => {
                     )}
 
                     <button
-                      onClick={stopRecording}
+                      onClick={() => {
+                        const socket = getSocket();
+                        if (socket)
+                          socket.emit("stop_recording", {
+                            receiverId: activeChatUser.id,
+                          });
+                        stopRecording();
+                      }}
                       className="p-2 rounded-full bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white"
                     >
                       <Square className="h-5 w-5 fill-white" />
@@ -333,10 +367,20 @@ const ChatWindow = () => {
 
                   {/* Action Button (Send or Mic) */}
                   <button
-                    onClick={
-                      inputMessage.trim() ? handleSendMessage : startRecording
-                    }
-                    className="p-3 rounded-xl bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors  flex items-center justify-center"
+                    onClick={() => {
+                      if (inputMessage.trim()) {
+                        handleSendMessage();
+                      } else {
+                        const socket = getSocket();
+                        if (socket && activeChatUser) {
+                          socket.emit("start_recording", {
+                            receiverId: activeChatUser.id,
+                          });
+                        }
+                        startRecording();
+                      }
+                    }}
+                    className="p-3 rounded-xl bg-[var(--brand-primary)] hover:bg-[var(--brand-accent)] text-white transition-colors flex items-center justify-center"
                   >
                     {inputMessage.trim() ? (
                       <Send className="h-5 w-5" />

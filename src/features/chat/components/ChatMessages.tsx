@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Loader2, ChevronUp } from "lucide-react";
+import { Loader2, ChevronUp, Mic } from "lucide-react";
 import TypingIndicator from "../../../components/TypingIndicator";
 import type { ChatMessage } from "../../../types/chat.types";
 import AudioPlayer from "../../../components/AudioPlayer";
@@ -15,6 +15,7 @@ type ChatMessagesProps = {
   isLoading: boolean;
   isRemoteTyping: boolean;
   onLoadMore: () => void;
+  isRemoteRecording: boolean;
 };
 
 const ChatMessages = ({
@@ -24,6 +25,7 @@ const ChatMessages = ({
   isLoading,
   isRemoteTyping,
   onLoadMore,
+  isRemoteRecording,
 }: ChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +142,16 @@ const ChatMessages = ({
         {isRemoteTyping && (
           <div className="flex justify-start mb-2">
             <TypingIndicator />
+          </div>
+        )}
+        {isRemoteRecording && (
+          <div className="flex items-center gap-2 p-2 text-red-500">
+            {/* Pulse Animation Container */}
+            <div className="relative flex h-4 w-4 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <Mic className="relative h-3 w-3 text-red-500" />
+            </div>
+            <span className="text-sm font-medium">Recording voice...</span>
           </div>
         )}
 

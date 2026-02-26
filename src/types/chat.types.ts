@@ -16,8 +16,13 @@ export interface ChatMessage {
   seenAt?: string;
   status?: "sending" | "sent";
 
-  type: "TEXT" | "VOICE";
+  type: "TEXT" | "VOICE" | "IMAGE" | "VIDEO" | "PDF";
   duration?: number;
+
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  thumbnailUrl?: string;
 
   sender?: {
     id: string;

@@ -28,6 +28,10 @@ export interface Message {
   fileSize?: number;
   mimeType?: string;
   thumbnailUrl?: string;
+
+  uploadProgress?: number;
+  downloadProgress?: number;
+  localUrl?: string;
 }
 
 type PaginationState = {
@@ -297,6 +301,33 @@ const chatSlice = createSlice({
         state.chatList.unshift(user);
       }
     },
+    updateDownloadProgress: (state, action) => {
+      const { messageId, progress, localUrl } = action.payload;
+      const chatId = state.activeChatUser?.id;
+      if (!chatId) return;
+
+      const userMessages = state.messages[chatId];
+      if (userMessages) {
+        const index = userMessages.findIndex((msg) => msg.id === messageId);
+        if (index !== -1) {
+          userMessages[index].downloadProgress = progress;
+          if (localUrl) userMessages[index].localUrl = localUrl;
+        }
+      }
+    },
+    updateUploadProgress: (state, action) => {
+      const { tempId, progress } = action.payload;
+      const chatId = state.activeChatUser?.id;
+      if (!chatId) return;
+
+      const userMessages = state.messages[chatId];
+      if (userMessages) {
+        const index = userMessages.findIndex((msg) => msg.id === tempId);
+        if (index !== -1) {
+          userMessages[index].uploadProgress = progress;
+        }
+      }
+    },
 
     updateOptimisticUrl: (state, action) => {
       const {
@@ -317,7 +348,6 @@ const chatSlice = createSlice({
         if (index !== -1) {
           userMessages[index].content = url;
           userMessages[index].status = "sending";
-
           if (thumbnailUrl) userMessages[index].thumbnailUrl = thumbnailUrl;
           if (fileName) userMessages[index].fileName = fileName;
           if (fileSize) userMessages[index].fileSize = fileSize;
@@ -423,6 +453,8 @@ export const {
   setMessagesSeen,
   addUserToChatList,
   updateOptimisticUrl,
+  updateUploadProgress,
+  updateDownloadProgress,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

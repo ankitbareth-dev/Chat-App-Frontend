@@ -20,13 +20,14 @@ import {
   selectActiveChatMessages,
   selectActiveChatPagination,
   updateOptimisticUrl,
+  updateUploadProgress,
 } from "./chatSlice";
 import { getSocket } from "../../app/socket";
 import type { ChatMessage } from "../../types/chat.types";
 import { useHistoryStack } from "../../hooks/useHistoryStack";
 import { useVoiceRecorder } from "../../hooks/useVoiceRecorder";
 import {
-  uploadMediaApi,
+  uploadMediaWithProgress,
   uploadVoiceNoteApi,
 } from "../../services/chat.service";
 import { toast } from "sonner";
@@ -165,39 +166,38 @@ const ChatWindow = () => {
     if (!file || !activeChatUser || !user) return;
 
     const tempId = `temp-${Date.now()}`;
-    const localUrl = URL.createObjectURL(file); // Local preview
+    const localUrl = URL.createObjectURL(file);
 
-    // Determine type
     let type: "IMAGE" | "VIDEO" | "PDF" = "IMAGE";
     if (file.type.startsWith("video")) type = "VIDEO";
     else if (file.type === "application/pdf") type = "PDF";
 
-    // 1. Optimistic Message
+    // 1. Optimistic Update
     const optimisticMessage: DisplayMessage = {
       id: tempId,
       senderId: user.id,
       receiverId: activeChatUser.id,
-      content: localUrl, // Use local blob for immediate preview
+      content: localUrl,
       timestamp: new Date().toISOString(),
       status: "sending",
       type: type,
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
-      // thumbnailUrl can be set here if you generate it client-side, but localUrl acts as preview for now
-      thumbnailUrl: type !== "PDF" ? localUrl : undefined,
+      uploadProgress: 0,
     };
 
     dispatch(addMessage(optimisticMessage));
     setInputMessage("");
-    if (fileInputRef.current) fileInputRef.current.value = ""; // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = "";
 
-    // 2. Upload & Send
+    // 2. Upload Logic
     const sendMedia = async () => {
       try {
-        const mediaData = await uploadMediaApi(file);
+        const mediaData = await uploadMediaWithProgress(file, (progress) => {
+          dispatch(updateUploadProgress({ tempId, progress }));
+        });
 
-        // Update Redux with real URLs
         dispatch(
           updateOptimisticUrl({
             tempId,
@@ -210,7 +210,6 @@ const ChatWindow = () => {
           }),
         );
 
-        // Emit Socket
         const socket = getSocket();
         if (socket) {
           socket.emit("send_message", {
@@ -225,6 +224,7 @@ const ChatWindow = () => {
           });
         }
 
+        // Revoke local URL after upload to free memory
         URL.revokeObjectURL(localUrl);
       } catch (error) {
         console.error(error);

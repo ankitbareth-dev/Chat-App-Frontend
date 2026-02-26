@@ -19,6 +19,7 @@ import {
 } from "./chatSlice";
 import LogoutModal from "../auth/LogoutModal";
 import ProfilePanel from "../profile/ProfilePanel";
+import ImagePreviewModal from "../../components/ImagePreviewModal"; // Import the new modal
 import type { ChatUser } from "../../types/chat.types";
 import useDebounce from "../../hooks/useDebounce";
 import useOnClickOutside from "../../hooks/useOnClickOutside";
@@ -40,6 +41,9 @@ const Sidebar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+
+  // State for Image Preview
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
@@ -103,10 +107,11 @@ const Sidebar = () => {
       <aside
         className={`
         flex flex-col h-full bg-[var(--bg-deep)] border-r border-white/5 
-        transition-transform duration-300 ease-in-out
+        transition-all duration-300 ease-in-out
         w-full md:w-80
         absolute md:relative inset-0 md:inset-auto z-20 md:z-auto
         ${activeChatUser ? "-translate-x-full md:translate-x-0" : "translate-x-0"}
+        ${previewImage ? "blur-sm" : ""} // Blur sidebar when modal is open
       `}
       >
         {/* Header - Always Visible */}
@@ -322,11 +327,18 @@ const Sidebar = () => {
                           <div className="absolute left-0 top-2 bottom-2 w-1 bg-[var(--brand-primary)] rounded-r-full" />
                         )}
 
-                        <div className="relative">
+                        {/* Image Wrapper - Click triggers preview */}
+                        <div
+                          className="relative"
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent parent button click
+                            setPreviewImage(user.profilePicture);
+                          }}
+                        >
                           <img
                             src={user.profilePicture}
                             alt={user.name}
-                            className="h-12 w-12 rounded-full object-cover border border-white/10"
+                            className="h-12 w-12 rounded-full object-cover border border-white/10 cursor-pointer hover:opacity-80 transition-opacity"
                           />
                           <div
                             className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[var(--bg-deep)] ${
@@ -374,6 +386,14 @@ const Sidebar = () => {
       <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
+      />
+
+      {/* Image Preview Modal */}
+      <ImagePreviewModal
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        imageUrl={previewImage || ""}
+        userName="Profile Picture"
       />
     </>
   );

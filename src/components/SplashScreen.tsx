@@ -26,9 +26,6 @@ const SplashScreen = () => {
           <h1 className="text-3xl font-bold text-white tracking-tight">
             Chat<span className="text-[var(--brand-primary)]">Flow</span>
           </h1>
-          <p className="text-[var(--text-muted)] text-sm font-medium tracking-wider  animate-pulse">
-            Loading Chats...
-          </p>
         </div>
       </div>
     </div>
